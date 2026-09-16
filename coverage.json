@@ -1,0 +1,286 @@
+{
+  "//": "The docs<->skills parity map. Checked in BOTH directions by tools/verify-coverage.mjs: a docs/flows page no skill claims fails, and a claimed path that no longer exists in vsms fails. See README.md and CONTRIBUTING.md.",
+  "baseline": {
+    "//": "A skill is true of *a* vsms, not of vsms. vsms tags releases for its images and SDKs, but a skill describes the tree, and the tree moves between tags — so the honest version identity is a commit and a date. Every SKILL.md is stamped with this ref (or a descendant of it) and the gate refuses one stamped otherwise. See VERSIONING.md.",
+    "vsmsRef": "0dbde02aa10c02e13da0978a5cd5d2338a4df0f9",
+    "vsmsRefShort": "0dbde02a",
+    "vsmsCommitDate": "2026-09-15",
+    "verifiedAt": "2026-09-16"
+  },
+  "skills": {
+    "vsms": {
+      "covers": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "README.md",
+        "CONTRIBUTING.md",
+        "OPEN_QUESTIONS.md",
+        "docs/architecture.md",
+        "docs/roadmap.md",
+        "docs/flows/README.md",
+        "docs/runbooks",
+        "docs/runbooks/README.adoc"
+      ]
+    },
+    "vsms-conventions": {
+      "covers": [
+        "docs/flows/errors.md",
+        "clippy.toml",
+        "rustfmt.toml",
+        "deny.toml",
+        "biome.json",
+        "backends/crates/sms-core",
+        "backends/crates/sms-api/src/errors.rs",
+        "backends/crates/sms-worker/src/jobs/error.rs"
+      ]
+    },
+    "vsms-tooling": {
+      "covers": [
+        "justfile",
+        "Cargo.toml",
+        ".xtask",
+        ".xtask/src/main.rs",
+        ".cargo/config.toml",
+        ".nvmrc",
+        ".npmrc",
+        "package.json",
+        "pnpm-workspace.yaml",
+        "turbo.json",
+        "ci",
+        "ci/runner",
+        "compose.test.yaml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml"
+      ]
+    },
+    "vsms-troubleshooting": {
+      "covers": [
+        "compose.dev.yaml",
+        "docs/runbooks/local-development.adoc",
+        "docs/runbooks/getting-started.adoc",
+        "docs/runbooks/showcase.adoc"
+      ]
+    },
+    "vsms-docs-skills": {
+      "covers": [
+        "docs/design",
+        "docs/design/console-redesign.md",
+        ".xtask/src/docs_drift.rs",
+        ".github/pull_request_template.md"
+      ]
+    },
+    "vsms-data-layer": {
+      "covers": [
+        "docs/flows/data-layer.md",
+        "schemas/vsms.cstack",
+        "backends/migrations",
+        "backends/migrations/postgres/0001_init",
+        "backends/migrations/postgres/0002_bootstrap",
+        "backends/apps/sms-migrate",
+        "backends/crates/sms-api/src/lib.rs",
+        "backends/crates/sms-api/tests/system_context_golden_list_live_postgres.rs",
+        "backends/crates/sms-api/tests/create_inputs.rs",
+        ".xtask/src/raw_sqlx.rs",
+        ".xtask/src/parity.rs",
+        ".xtask/src/bootstrap_sql.rs",
+        ".xtask/src/migrations_current.rs",
+        "ci/test-state-machine.sql"
+      ]
+    },
+    "vsms-messaging": {
+      "covers": [
+        "docs/flows/message-lifecycle.md",
+        "docs/flows/send-pipeline.md",
+        "docs/flows/encoding.md",
+        "docs/flows/msisdn.md",
+        "docs/flows/dlr-ingestion.md",
+        "backends/crates/sms-encoding",
+        "backends/crates/sms-msisdn",
+        "backends/crates/sms-api/src/procedures.rs",
+        "backends/crates/sms-api/src/dlr.rs",
+        "backends/crates/sms-api/src/cache.rs",
+        "backends/apps/sms-gateway/src/dlr.rs"
+      ]
+    },
+    "vsms-providers": {
+      "covers": [
+        "docs/flows/provider-port.md",
+        "backends/crates/sms-provider",
+        "backends/crates/sms-provider/src/error.rs",
+        "backends/crates/sms-provider-http",
+        "backends/crates/sms-provider-http/src/transport.rs",
+        "backends/crates/sms-provider-http/src/submit_status.rs"
+      ]
+    },
+    "vsms-orange-cm": {
+      "covers": [
+        "docs/flows/adapter-orange-cm.md",
+        "backends/crates/sms-provider-orange-cm",
+        "backends/crates/sms-fake-orange",
+        "backends/apps/sms-fake-orange"
+      ]
+    },
+    "vsms-mtn": {
+      "covers": [
+        "docs/flows/adapter-mtn.md",
+        "backends/crates/sms-provider-mtn"
+      ]
+    },
+    "vsms-routing": {
+      "covers": [
+        "docs/flows/routing.md",
+        "docs/flows/failover.md",
+        "docs/flows/grey-routes.md",
+        "backends/crates/sms-routing",
+        "backends/crates/sms-worker/src/routing.rs",
+        "backends/crates/sms-worker/src/breaker.rs",
+        "backends/crates/sms-worker/src/jobs/grey_route_watch.rs",
+        "backends/crates/sms-api/src/route_simulator.rs",
+        "docs/runbooks/grey-route-validation.adoc"
+      ]
+    },
+    "vsms-worker": {
+      "covers": [
+        "docs/flows/worker-roles.md",
+        "docs/flows/worker-concurrency.md",
+        "docs/flows/dispatch.md",
+        "docs/flows/jobs.md",
+        "backends/crates/sms-worker",
+        "backends/apps/sms-worker",
+        "backends/crates/sms-worker/src/lease.rs",
+        "backends/crates/sms-worker/src/claim.rs",
+        "backends/crates/sms-worker/src/dispatch.rs",
+        "backends/crates/sms-worker/src/jobs.rs",
+        "backends/crates/sms-worker/src/scheduler.rs",
+        "backends/crates/sms-api/src/worker_roles.rs",
+        "backends/crates/sms-api/src/worker_locks.rs"
+      ]
+    },
+    "vsms-webhooks": {
+      "covers": [
+        "docs/flows/events-outbox.md",
+        "docs/flows/webhook-delivery.md",
+        "docs/flows/webhook-signing.md",
+        "backends/crates/sms-webhook",
+        "backends/crates/sms-api/src/webhooks.rs",
+        "backends/crates/sms-worker/src/hooks.rs",
+        "backends/crates/sms-worker/src/drain.rs",
+        "backends/crates/sms-worker/src/jobs/reap_outbox.rs",
+        "examples/node/webhook-receiver"
+      ]
+    },
+    "vsms-api": {
+      "covers": [
+        "docs/flows/api-surface.md",
+        "docs/flows/idempotency.md",
+        "docs/flows/rate-limiting.md",
+        "backends/crates/sms-api",
+        "backends/crates/sms-api/src/router.rs",
+        "backends/crates/sms-api/src/rbac.rs",
+        "backends/apps/sms-gateway",
+        "backends/apps/sms-gateway/src/commands",
+        "backends/apps/sms-gateway/src/token_rate_limit.rs",
+        "backends/migrations/postgres/0003_idempotency_table",
+        "deploy/Caddyfile"
+      ]
+    },
+    "vsms-auth": {
+      "covers": [
+        "docs/flows/machine-auth.md",
+        "docs/flows/human-login.md",
+        "docs/flows/rbac.md",
+        "backends/crates/sms-auth",
+        "backends/crates/sms-auth/src/op.rs",
+        "backends/crates/sms-auth/src/login.rs",
+        "backends/crates/sms-api/src/auth.rs",
+        "backends/apps/sms-gateway/src/op.rs",
+        "backends/apps/sms-gateway/src/login.rs",
+        "backends/crates/sms-auth/tests/rbac_layer2_live_postgres.rs",
+        "frontends/apps/admin/lib/oidc.ts"
+      ]
+    },
+    "vsms-console": {
+      "covers": [
+        "docs/flows/console.md",
+        "frontends",
+        "frontends/apps/admin",
+        "frontends/packages/gateway",
+        "frontends/packages/api",
+        "frontends/packages/env",
+        "frontends/packages/hooks",
+        ".xtask/src/r6_ui_layers.rs",
+        "skills-lock.json",
+        ".agents/skills/vaam-ui"
+      ]
+    },
+    "vsms-compliance": {
+      "covers": [
+        "docs/flows/consent-and-quiet-hours.md",
+        "docs/flows/opt-outs.md",
+        "docs/flows/retention.md",
+        "docs/flows/audit.md",
+        "backends/crates/sms-api/src/consent.rs",
+        "backends/crates/sms-api/src/pepper.rs",
+        "backends/crates/sms-api/src/audit_log.rs",
+        "backends/crates/sms-worker/src/jobs/purge_retention.rs",
+        "backends/crates/sms-worker/src/jobs/anchor_audit.rs",
+        "docs/legal/retention-briefing.md"
+      ]
+    },
+    "vsms-ops": {
+      "covers": [
+        "docs/flows/deployment.md",
+        "docs/flows/observability.md",
+        "deploy",
+        "deploy/charts",
+        "deploy/prometheus",
+        "deploy/prometheus/alerts.yml",
+        "deploy/backup-tool",
+        "deploy/docker-compose.yml",
+        "compose.yml",
+        "compose.demo.yaml",
+        "backends/crates/sms-metrics",
+        "backends/apps/sms-gateway/src/health.rs",
+        "docs/runbooks/deployment.adoc",
+        "docs/runbooks/backup-restore.adoc",
+        "docs/runbooks/alerting.adoc"
+      ]
+    },
+    "vsms-testing": {
+      "covers": [
+        "docs/flows/testing.md",
+        "backends/crates/sms-test-support",
+        "backends/crates/sms-worker/tests",
+        "backends/apps/sms-worker/tests",
+        "backends/crates/sms-worker/tests/chaos_live_postgres.rs",
+        "backends/apps/sms-worker/tests/kill9_reclaim_live.rs",
+        "ci/e2e-integration",
+        "docs/runbooks/testing.adoc",
+        "docs/runbooks/e2e-integration.adoc",
+        "docs/runbooks/36-handset-gate.adoc",
+        "docs/runbooks/65-kill-orange-gate.adoc"
+      ]
+    },
+    "vsms-sdks": {
+      "covers": [
+        "docs/flows/sdks.md",
+        "sdks",
+        "sdks/rust/vsms-sdk-rust",
+        "sdks/node/vsms-sdk-node",
+        "frontends/packages/sms-client",
+        "examples",
+        "examples/node",
+        "examples/rust",
+        "docs/integrating.md",
+        "docs/runbooks/releasing-sdks.adoc",
+        ".xtask/src/sdk_schema.rs",
+        ".xtask/src/node_sdk_types.rs"
+      ]
+    },
+    "vsms-multi-country": {
+      "covers": ["docs/flows/multi-country.md", "docs/design/multi-country.md"]
+    }
+  },
+  "exempt": [],
+  "exemptReasons": {}
+}
