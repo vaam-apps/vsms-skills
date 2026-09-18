@@ -28,8 +28,10 @@ configuration.
    operators or quiet hours.** Both of the files above were written for
    Cameroon alone and most of them still read that way.
 
-`docs/flows/` is the feature index — one page per thing the system does. Start
-there when you need "what does this system promise about X".
+vsms has no single feature index. "What does this system promise about X"
+is `docs/architecture.md`'s relevant numbered section first, then the `.md`
+sidecar next to the module that implements it (`#![doc = include_str!(...)]`
+— `dispatch.md`, `claim.md`, `op.md`, and 72 others under `backends/**/src/`).
 
 ## The one thing to get right
 
@@ -99,10 +101,10 @@ just ci                        # the whole gate, 23 steps, in a container
 `just all-checks` runs neither `cargo deny`, nor the live-Postgres suites, nor
 anything on the TypeScript side. Do not report it as CI passing.
 
-When you finish: update the `docs/flows/` page your change belongs to **in the
-same commit**, check `docs/roadmap.md` (usually no edit — see
-`vsms-docs-skills`), and state explicitly in your summary what you did _not_
-do.
+When you finish: update the module's `.md` sidecar (and `docs/architecture.md`
+if it changes the spec) **in the same commit**, check `docs/roadmap.md`
+(usually no edit — see `vsms-docs-skills`), and state explicitly in your
+summary what you did _not_ do.
 
 ## Repository map
 
@@ -115,7 +117,7 @@ do.
 | `frontends/`                    | The pnpm workspace: `apps/admin` plus `packages/{gateway,api,env,hooks,sms-client}`                                                                                            |
 | `sdks/`, `examples/`            | Published SDKs and runnable examples. **`examples/*` is outside the pnpm workspace on purpose**                                                                                |
 | `.xtask/`                       | Every CI guard. No bash or Python survives in this repo                                                                                                                        |
-| `docs/flows/`                   | The feature index — one page per process                                                                                                                                       |
+| `backends/**/src/*.md`          | The real feature index — one sidecar per module, pulled in via `#![doc = include_str!(...)]`. 75 of them as of `0dbde02a`                                                      |
 | `docs/runbooks/`                | AsciiDoc. How to operate it, including the two manual milestone gates                                                                                                          |
 
 ## Traps that have each cost this project real time

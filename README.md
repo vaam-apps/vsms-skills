@@ -107,8 +107,10 @@ So this repository ships a gate, and it fails in **both** directions:
 node tools/verify-coverage.mjs /path/to/vsms
 ```
 
-- **docs → skills.** A page in `docs/flows/` that no skill claims fails the
-  gate. That is the half that catches a feature shipping with no briefing.
+- **docs → skills.** A vsms documentation page — a module's `.md` sidecar
+  under `backends/**/src/`, a `docs/runbooks/*.adoc`, a `docs/design/*.md`, or
+  a `docs/legal/*.md` — that no skill claims fails the gate. That is the half
+  that catches a feature shipping with no briefing.
 - **skills → docs.** A path claimed in `coverage.json` that no longer exists in
   vsms fails the gate. That is the half that catches a skill still describing
   something that moved or was deleted.
