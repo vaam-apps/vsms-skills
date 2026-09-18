@@ -22,14 +22,14 @@ it, at machine speed, across every session that loads it.
 
 ## Where a change belongs
 
-| You changed                                              | Update                                                                            |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Behaviour a caller can observe                           | The `docs/flows/` page for it, **in the same commit**                             |
-| Why something is shaped the way it is                    | The module's `.md` sidecar, and `docs/architecture.md` if it contradicts the spec |
-| Something you found by running it, especially a surprise | `AGENTS.md`, in the section for that area                                         |
-| A decision that was open                                 | `OPEN_QUESTIONS.md`, and the decision's own issue                                 |
-| The sequencing picture                                   | `docs/roadmap.md` — see below                                                     |
-| A feature, of any kind                                   | **A skill in `vaam-apps/vsms-skills`**                                            |
+| You changed                                              | Update                                                                     |
+| -------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Behaviour a caller can observe                           | `docs/architecture.md`'s relevant numbered section, **in the same commit** |
+| Why something is shaped the way it is                    | The module's `.md` sidecar, updated in the same commit                     |
+| Something you found by running it, especially a surprise | `AGENTS.md`, in the section for that area                                  |
+| A decision that was open                                 | `OPEN_QUESTIONS.md`, and the decision's own issue                          |
+| The sequencing picture                                   | `docs/roadmap.md` — see below                                              |
+| A feature, of any kind                                   | **A skill in `vaam-apps/vsms-skills`**                                     |
 
 ## `docs/roadmap.md`: check it always, edit it rarely
 
@@ -74,15 +74,16 @@ were about to form.
 run by that repository's CI against vsms's `main` daily and on every push. It
 fails in **both** directions:
 
-- **docs → skills**: a `docs/flows/` page no skill claims. Catches a feature
-  shipping with no briefing.
+- **docs → skills**: a module `.md` sidecar, `docs/runbooks/*.adoc`,
+  `docs/design/*.md` or `docs/legal/*.md` page no skill claims. Catches a
+  feature shipping with no briefing.
 - **skills → docs**: a path claimed in `coverage.json` that no longer exists in
   vsms. Catches a skill still describing something that moved or was deleted.
 
-**Read what it actually proves.** Green means "every feature page is claimed by
-some skill and no skill cites a dead path". **It cannot read prose**, so it does
-_not_ mean the claiming skill says anything true about that page. Only a dated
-claim and a reader can do that.
+**Read what it actually proves.** Green means "every documentation page is
+claimed by some skill and no skill cites a dead path". **It cannot read prose**,
+so it does _not_ mean the claiming skill says anything true about that page.
+Only a dated claim and a reader can do that.
 
 **Open the `vsms-skills` PR alongside the vsms one and link them** rather than
 leaving it to the daily cron. `references/skills-parity.md` has the routing

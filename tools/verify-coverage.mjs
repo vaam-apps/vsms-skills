@@ -4,9 +4,9 @@
 // It fails in BOTH directions, deliberately, the way vsms's own
 // `cargo xtask` guards do:
 //
-//   docs -> skills   a vsms feature page that no skill claims fails the gate.
-//                    That is the half that catches "a feature shipped and
-//                    nobody taught the agents about it".
+//   docs -> skills   a vsms documentation page that no skill claims fails the
+//                    gate. That is the half that catches "a feature shipped
+//                    and nobody taught the agents about it".
 //
 //   skills -> docs   a path claimed in coverage.json that does not exist in
 //                    the vsms checkout fails the gate. That is the half that
@@ -15,8 +15,35 @@
 //
 // A one-directional gate lets the map rot in the direction nobody looks. vsms
 // learned that lesson twice over — see its own AGENTS.md on the live-Postgres
-// suites CI never ran, and on the four separate incidents of documentation
+// suites CI never ran, and on the (many) separate incidents of documentation
 // asserting something the code does not do.
+//
+// ---------------------------------------------------------------------------
+// What "the docs side" actually is
+// ---------------------------------------------------------------------------
+//
+// This gate used to walk `docs/flows/` — a "one page per feature" index that
+// was never real. It does not exist in vsms, has never existed in vsms's
+// history, and the checker that walked it could never pass: it called
+// `note(...)` unconditionally the moment the directory was missing, which is
+// every single run. See CHANGELOG.md's "v2026-09-1x — docs/flows never
+// existed" entry for the post-mortem.
+//
+// vsms's REAL, machine-enumerable, one-page-per-thing documentation surface
+// is its own `.md` sidecar convention: most Rust modules keep their prose in
+// a sibling `.md` file pulled in with `#![doc = include_str!("foo.md")]`,
+// identified — the same way vsms's own `.xtask/src/docs_drift.rs` identifies
+// them — by living under a `src/` directory. As of this rewrite there are 75
+// of them under `backends/`, one per module that earned its own narrative:
+// `dispatch.md`, `claim.md`, `op.md`, `pepper.md`, and so on. That is the
+// closest real analogue to "one page per thing the system does", and it is
+// recursive by construction — a crate that splits one big sidecar into
+// several small ones changes what this walk finds with no change needed here.
+//
+// Three flatter, already-real directories round it out, each genuinely
+// "one file per topic": `docs/runbooks/*.adoc` (operational procedures),
+// `docs/design/*.md` (design docs / ADRs / RFCs), and `docs/legal/*.md`
+// (compliance briefings).
 //
 // Usage:  node tools/verify-coverage.mjs [path-to-vsms-checkout]
 //         VSMS_REPO=/path/to/vsms node tools/verify-coverage.mjs
@@ -107,7 +134,10 @@ if (baseline.vsmsRef) {
     const headShort = head.slice(0, 8);
     const headDate = git("log", "-1", "--format=%cs", "HEAD");
 
-    if (head.startsWith(baseline.vsmsRef) || baseline.vsmsRef.startsWith(head)) {
+    if (
+      head.startsWith(baseline.vsmsRef) ||
+      baseline.vsmsRef.startsWith(head)
+    ) {
       drift =
         `baseline: vsms ${headShort} (${headDate}) — exactly the tree these ` +
         `skills were verified against`;
@@ -205,7 +235,9 @@ for (const dir of skillDirs) {
   // against. Enforced rather than asked for, because the whole point is that
   // it must never be the line someone forgets.
   const stamp =
-    /Verified against vsms `([0-9a-f]{7,40})` \((\d{4}-\d{2}-\d{2})\)/.exec(src);
+    /Verified against vsms `([0-9a-f]{7,40})` \((\d{4}-\d{2}-\d{2})\)/.exec(
+      src,
+    );
   if (!stamp) {
     note(
       `skills/${dir}/SKILL.md carries no version stamp. Add, under the title:\n` +
@@ -263,7 +295,9 @@ for (const dir of skillDirs) {
 
 for (const skill of Object.keys(coverage.skills)) {
   if (!skillDirs.includes(skill)) {
-    note(`coverage.json names skill "${skill}", which has no skills/ directory`);
+    note(
+      `coverage.json names skill "${skill}", which has no skills/ directory`,
+    );
   }
 }
 
@@ -281,46 +315,75 @@ for (const [skill, entry] of Object.entries(coverage.skills)) {
   }
 }
 
-// ------------------------------------------- vsms -> skills (features covered)
+// ------------------------------------------- vsms -> skills (docs covered)
 
-// docs/flows/ is vsms's own feature index: one page per thing the system does.
-// It is the closest machine-readable answer to "what are the features", which
-// is exactly the list a skills repo has to keep up with.
-const claimed = new Set(
-  Object.values(coverage.skills).flatMap((e) => e.covers ?? []),
-);
-
-// RECURSIVE, deliberately. If a flow ever becomes "an overview plus a
-// directory", enumerating one level would see half the pages and report
-// success — exactly the "gate whose green means less than it looks" this
-// repository exists to refuse.
-const flowsDir = join(vsms, "docs", "flows");
-
-if (!existsSync(flowsDir)) {
-  note(
-    `${vsms}/docs/flows does not exist. That directory is vsms's own feature ` +
-      `index and this gate has nothing to check without it.`,
-  );
-}
+// The four real, enumerable "one file per topic" documentation surfaces. See
+// the header comment for why these replace the fabricated `docs/flows/` walk.
+//
+// Each surface is RECURSIVE, deliberately, the same reason the original
+// `docs/flows` walk was: if a module's sidecar ever becomes "an overview plus
+// a directory of detail pages", enumerating one level would see half the
+// pages and report success — exactly the "gate whose green means less than
+// it looks" this repository exists to refuse.
+const surfaces = [
+  {
+    // vsms's own `.md`-sidecar-next-to-source convention. Identified, like
+    // `.xtask/src/docs_drift.rs` identifies it, by living under a `src/`
+    // directory — not by a fixed depth, so a crate whose docs sit two levels
+    // deep (`backends/crates/sms-worker/src/jobs/anchor_audit.md`) is found
+    // exactly as reliably as one whose docs sit one level deep.
+    root: "backends",
+    match: (relPath) => relPath.includes("/src/") && relPath.endsWith(".md"),
+    // The unit a directory-level claim covers: the crate/app root two path
+    // segments under `backends/` — `backends/crates/<name>` or
+    // `backends/apps/<name>`. A claim on `backends` itself, or on
+    // `backends/crates`, does not exist anywhere in coverage.json and is
+    // deliberately not treated as a valid "covers everything" claim — see
+    // the ancestor walk below.
+  },
+  {
+    root: "docs/runbooks",
+    match: (relPath) => relPath.endsWith(".adoc"),
+  },
+  {
+    root: "docs/design",
+    match: (relPath) => relPath.endsWith(".md"),
+  },
+  {
+    root: "docs/legal",
+    match: (relPath) => relPath.endsWith(".md"),
+  },
+];
 
 const walk = (dir, prefix) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory()
       ? walk(join(dir, e.name), `${prefix}/${e.name}`)
-      : e.name.endsWith(".md") && e.name !== "README.md"
-        ? [`${prefix}/${e.name}`]
-        : [],
+      : [`${prefix}/${e.name}`],
   );
 
-const flows = existsSync(flowsDir) ? walk(flowsDir, "docs/flows") : [];
+let docs = [];
+for (const surface of surfaces) {
+  const abs = join(vsms, surface.root);
+  if (!existsSync(abs)) {
+    note(
+      `${vsms}/${surface.root} does not exist. This gate's vsms -> skills ` +
+        `direction has nothing to check under it without that directory — ` +
+        `either vsms reorganised (update tools/verify-coverage.mjs's ` +
+        `\`surfaces\` list to match) or the checkout is wrong.`,
+    );
+    continue;
+  }
+  const files = walk(abs, surface.root).filter(surface.match);
+  docs.push(...files);
+}
+docs.sort();
+
+const claimed = new Set(
+  Object.values(coverage.skills).flatMap((e) => e.covers ?? []),
+);
 const exempt = new Set(coverage.exempt ?? []);
 
-// A detail page under an overview's directory is covered when the skill claims
-// the page itself, the directory, or the overview page it was split out of.
-// …but that fallback only extends to pages that existed when the skills were
-// verified. A page added under a claimed directory SINCE the baseline is a
-// feature nobody wrote a briefing for, and inheriting the parent's claim would
-// hide exactly the case this gate exists to catch.
 const existedAtBaseline = (path) => {
   if (!baseline.vsmsRef) return true; // no baseline: the gate already said so
   try {
@@ -335,39 +398,73 @@ const existedAtBaseline = (path) => {
   }
 };
 
-const covers = (flow) => {
-  if (claimed.has(flow) || exempt.has(flow)) return true;
-  const dir = flow.slice(0, flow.lastIndexOf("/"));
-  if (dir === "docs/flows") return false;
-  if (!claimed.has(dir) && !claimed.has(`${dir}.md`)) return false;
-  return existedAtBaseline(flow);
-};
+// Ancestor directories of `doc`, nearest first, stopping at (and including)
+// the two-segment crate/app root under `backends/` — never at `backends`
+// itself or at `backends/crates`/`backends/apps`, which no skill claims and
+// which would make the gate trivially satisfied by nothing. For the three
+// flat `docs/*` surfaces this returns nothing at all: those directories are
+// one level deep with no sub-topic nesting today, so a claim there must name
+// the file, not wave at the whole directory. (Two of coverage.json's
+// directory-level entries — bare `docs/runbooks` and `docs/design` — did
+// exactly that before this rewrite and were removed for it: they made every
+// file under either directory pass regardless of whether any skill's prose
+// ever mentioned it.)
+function ancestors(doc) {
+  const parts = doc.split("/");
+  const out = [];
+  if (
+    parts[0] === "backends" &&
+    (parts[1] === "crates" || parts[1] === "apps")
+  ) {
+    const crateRoot = parts.slice(0, 3).join("/");
+    for (let end = parts.length - 1; end > 3; end--) {
+      out.push(parts.slice(0, end).join("/"));
+    }
+    out.push(crateRoot);
+  }
+  return out;
+}
 
-for (const flow of flows) {
-  if (!covers(flow)) {
-    const parent = flow.slice(0, flow.lastIndexOf("/"));
-    const inherited =
-      parent.length > "docs/flows".length &&
-      (claimed.has(parent) || claimed.has(`${parent}.md`));
+// A doc is covered when: the exact path is claimed, or it is exempted, or one
+// of its ancestor directories (see above) is claimed AND the page already
+// existed at the baseline commit. That last clause is the one that makes a
+// directory-level claim honest over time: a claim on `backends/crates/sms-mtn`
+// covers what was there when someone verified that claim, not whatever gets
+// added to the crate afterward with nobody re-reading it. A page added since
+// then needs either its own explicit claim (re-stamps the skill's promise
+// about that one page without re-verifying the other seventy-four) or an
+// exemption.
+function covers(doc) {
+  if (claimed.has(doc) || exempt.has(doc)) return true;
+  for (const dir of ancestors(doc)) {
+    if (claimed.has(dir)) return existedAtBaseline(doc);
+  }
+  return false;
+}
+
+for (const doc of docs) {
+  if (!covers(doc)) {
+    const dirs = ancestors(doc);
+    const inherited = dirs.some((d) => claimed.has(d));
     note(
       inherited
-        ? `${flow} was added to vsms AFTER the baseline ` +
+        ? `${doc} was added to vsms AFTER the baseline ` +
             `(${baseline.vsmsRefShort ?? baseline.vsmsRef?.slice(0, 8)}).\n` +
             `      Its directory is claimed, but that claim was earned against a ` +
             `tree that did not contain this page. Read it, fold it into the ` +
             `owning skill, and claim the page explicitly — or exempt it with a ` +
             `reason.`
-        : `${flow} is a vsms feature page that no skill covers.\n` +
-            `      Add it — or its directory, or the overview it was split from — ` +
-            `to a skill's "covers" in coverage.json, and write the prose that ` +
-            `earns the claim. If it genuinely needs no skill, list it under ` +
-            `"exempt" with a reason in "exemptReasons".`,
+        : `${doc} is a vsms documentation page that no skill covers.\n` +
+            `      Add it — or its crate/app root — to a skill's "covers" in ` +
+            `coverage.json, and write the prose that earns the claim. If it ` +
+            `genuinely needs no skill, list it under "exempt" with a reason in ` +
+            `"exemptReasons".`,
     );
   }
 }
 
 for (const e of exempt) {
-  if (!flows.includes(e) && !existsSync(join(vsms, e))) {
+  if (!docs.includes(e) && !existsSync(join(vsms, e))) {
     note(`coverage.json exempts ${e}, which no longer exists in vsms`);
   }
   if (!coverage.exemptReasons?.[e]) {
@@ -394,7 +491,7 @@ if (failures.length > 0) {
 console.log(
   `verify-coverage: ${skillDirs.length} skills, ` +
     `${claimed.size} vsms paths claimed, ` +
-    `${flows.length} feature pages, ` +
+    `${docs.length} documentation pages across ${surfaces.length} surfaces, ` +
     `${exempt.size} exempt — parity against ${vsms}`,
 );
 if (drift) console.log(`            ${drift}`);

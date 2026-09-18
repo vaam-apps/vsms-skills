@@ -35,9 +35,10 @@ writing the prose passes the gate and defeats the point.
 ## Adding a new feature
 
 1. Write the code.
-2. Write `docs/flows/<feature>.md` in the same PR.
+2. Write or update the module's `.md` sidecar (and `docs/architecture.md`, if
+   the change reaches the spec) in the same PR.
 3. Open a `vsms-skills` PR: fold the feature into the owning skill's prose, add
-   the flow page and the source paths to that skill's `covers`, and stamp the
+   the sidecar and the source paths to that skill's `covers`, and stamp the
    skill with the vsms commit you verified against.
 4. Link the two PRs.
 

@@ -49,14 +49,14 @@ Sidecars under `src/` are exempt from its link check by design.
 
 ## Where each kind of answer lives
 
-| Question                              | Look in                                        |
-| ------------------------------------- | ---------------------------------------------- |
-| What does the system promise about X? | `docs/flows/X.md`                              |
-| Why is it shaped this way?            | `docs/architecture.md`, then the `.md` sidecar |
-| What broke, and what did we learn?    | `AGENTS.md`                                    |
-| How do I operate it?                  | `docs/runbooks/*.adoc`                         |
-| What is actually built?               | `docs/roadmap.md`, then GitHub                 |
-| What is still undecided?              | `OPEN_QUESTIONS.md`                            |
+| Question                              | Look in                                   |
+| ------------------------------------- | ----------------------------------------- |
+| What does the system promise about X? | `docs/architecture.md`'s relevant section |
+| Why is it shaped this way?            | The module's own `.md` sidecar            |
+| What broke, and what did we learn?    | `AGENTS.md`                               |
+| How do I operate it?                  | `docs/runbooks/*.adoc`                    |
+| What is actually built?               | `docs/roadmap.md`, then GitHub            |
+| What is still undecided?              | `OPEN_QUESTIONS.md`                       |
 
 ## The rule that binds them
 

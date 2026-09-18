@@ -170,7 +170,9 @@ against your vsms and tagging that.
 
 ## What the gate can and cannot tell you
 
-`tools/verify-coverage.mjs` checks that every `docs/flows/` page is claimed and
+`tools/verify-coverage.mjs` checks that every vsms documentation page — a
+module's `.md` sidecar, a `docs/runbooks/*.adoc`, a `docs/design/*.md`, or a
+`docs/legal/*.md` — is claimed and
 that every claimed path exists in the checkout you point it at. Run against an
 **older** vsms it will legitimately fail on paths that do not exist yet — that is
 not a bug, it is the tool telling you these skills are newer than that tree.

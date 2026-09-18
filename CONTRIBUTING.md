@@ -56,12 +56,12 @@ actually verified against.
 
 ## Adding coverage for a new vsms feature
 
-1. Read the feature — the code, its `.md` sidecar, and its `docs/flows/` page.
+1. Read the feature — the code, and its `.md` sidecar.
 2. Fold it into the **owning** skill's prose. Resist adding a skill: twenty-one
    is already a lot to choose between, and a routing table that is too fine is a
    routing table nobody follows.
-3. Add the flow page **and** the source paths to that skill's `covers` in
-   `coverage.json`.
+3. Add the sidecar (or its crate/app root) **and** the source paths to that
+   skill's `covers` in `coverage.json`.
 4. Re-stamp that skill with the vsms commit you verified against.
 5. Run the gate.
 
@@ -89,6 +89,7 @@ npx --yes prettier@3 --check "**/*.{md,json,yml}"
 ## Where the source of truth lives
 
 **vsms, always.** When this repository and vsms disagree, vsms is right and this
-repository has a bug. Fix it here, and check whether vsms's own `docs/flows/`
-page carried the same wrong claim — twice now, a skill's error was a faithful
-copy of a document that was already wrong.
+repository has a bug. Fix it here, and check whether vsms's own docs — the
+module's `.md` sidecar or `docs/architecture.md` — carried the same wrong
+claim; a skill's error is sometimes a faithful copy of a document that was
+already wrong, not an error of its own.
