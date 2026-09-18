@@ -71,7 +71,7 @@ jobs:
       security-events: write
       contents: read
       actions: read
-    uses: vaam-apps/.github/.github/workflows/sast.yml@57da4093ecd2c50f1da0a98fe88c6e3229c91547 # vaam-apps/.github main
+    uses: vaam-apps/.github/.github/workflows/sast.yml@b04a3ff5fd9334005b6cd9f14ac55bc1ae7f2879 # vaam-apps/.github main
     with:
       codeql-languages: "[]"
       docs-globs: "**/*.md"
@@ -93,7 +93,7 @@ jobs:
     permissions:
       contents: read
       statuses: write
-    uses: vaam-apps/.github/.github/workflows/lint.yml@57da4093ecd2c50f1da0a98fe88c6e3229c91547 # vaam-apps/.github main
+    uses: vaam-apps/.github/.github/workflows/lint.yml@b04a3ff5fd9334005b6cd9f14ac55bc1ae7f2879 # vaam-apps/.github main
     with:
       # fix: false, deliberately, rather than the org default of true. This
       # repo's own verify.yml already runs `prettier --check "**/*.{md,json,yml}"`
@@ -117,7 +117,7 @@ jobs:
     permissions:
       security-events: write
       contents: read
-    uses: vaam-apps/.github/.github/workflows/trivy.yml@57da4093ecd2c50f1da0a98fe88c6e3229c91547 # vaam-apps/.github main
+    uses: vaam-apps/.github/.github/workflows/trivy.yml@b04a3ff5fd9334005b6cd9f14ac55bc1ae7f2879 # vaam-apps/.github main
     with:
       # secret only: there is no package.json/Cargo.lock for the vuln scanner
       # to read, and no Dockerfile/compose/Helm chart for misconfig to check.
