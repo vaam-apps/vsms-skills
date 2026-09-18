@@ -27,7 +27,7 @@ anyway.
 
 ## The shape
 
-```
+```text
 skills/<name>/
   SKILL.md              # frontmatter, the version stamp, then the prose
   references/*.md       # detail pages, each LINKED from SKILL.md

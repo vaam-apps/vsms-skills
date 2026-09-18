@@ -99,7 +99,7 @@ This repository tags a release whenever a batch of skills is re-verified against
 a newer vsms. A tag names the **date of verification and the vsms commit it was
 verified against**:
 
-```
+```text
 v2026-09-16-0dbde02a
 ```
 
@@ -145,7 +145,7 @@ things to do before running it, in descending order of how much they matter:
 2. **Check how far your vsms has drifted.** Run the gate against your own
    checkout — it reports the distance from the baseline in commits and dates:
 
-   ```
+   ```text
    baseline: these skills were verified against vsms 0dbde02a (2026-09-15);
    this checkout is 9a3d5732 (2026-08-02) — 0 commit(s) newer,
    61 commit(s) it does not have.
