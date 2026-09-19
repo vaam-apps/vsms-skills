@@ -1,6 +1,6 @@
 # The signature scheme
 
-```
+```text
 signature = HMAC-SHA256(secret, "v1\n{timestamp}\n{eventId}\n{sha256_hex(body)}")
 header    = "v1=<hex>"
 ```

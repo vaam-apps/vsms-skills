@@ -17,7 +17,7 @@ Eleven states. **Rust proposes, Postgres decides** (R2): the legal edges are
 rows in `message_state_transitions` and a `BEFORE UPDATE` trigger rejects
 everything else with SQLSTATE `SM001`.
 
-```
+```text
 accepted → queued → routed → submitted → delivered
                                        → undelivered → queued (retry)
                                        → uncertain
@@ -68,7 +68,7 @@ machine credential.
 > A GSM-7 escape pair or a UTF-16 surrogate pair must not straddle a segment
 > boundary.
 
-```
+```text
 152 × "a" + "€" + 152 × "a"  = 306 septets
 306.div_ceil(153)            = 2   ← wrong
 analyse(...).segments        = 3   ← the escape pair cannot start at 153
