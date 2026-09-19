@@ -67,7 +67,7 @@ The framework **cannot express `SKIP LOCKED`** — `skip_locked()`, `nowait()` a
 `lock_mode()` are all compile errors. Optimistic CAS on `@version` instead, which
 is better here anyway: **no lock is held across the provider HTTP call.**
 
-```
+```text
 PreconditionFailed  → another worker won. Retry. Normal.
 Forbidden           → LOG IT LOUDLY. Never fold into the race branch.
 anything else       → propagate.
