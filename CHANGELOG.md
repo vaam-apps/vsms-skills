@@ -82,3 +82,20 @@ and this file changed.
 
 The gate was proven to actually fail, three separate ways, against a real
 vsms checkout, before being trusted — see the PR that shipped this entry.
+
+## v2026-09-24 — the `vaam-ui` copy was never pinned to a tag
+
+**A claim that stopped being true — in fact, never was.**
+`vsms-troubleshooting/references/console-and-node.md` said the `vaam-ui` agent
+skill is a copy "at a named tag, tracked in `skills-lock.json`". The lockfile
+records only the source, the skill's path and a content hash; no tag appears in
+it. Which release the copy matches is recorded by hand in vsms's `AGENTS.md`
+("Currently synced from …"), and that line read `v0.2.0` while the installed
+package was `0.2.4` — the copy lagged the package for a release without the
+lockfile being able to show it. Found while bumping vsms to `@vaam-apps/ui`
+`0.3.0` ([vaam-apps/vsms#420](https://github.com/vaam-apps/vsms/pull/420)).
+
+**Only that claim was re-verified**, against vsms
+[`c8568575`](https://github.com/vaam-apps/vsms/commit/c8568575006cd6d195bcb6eab769b2d772d80fb7) (2026-09-23).
+The skill stays stamped `0dbde02a` (2026-09-15): re-stamping it would claim the
+whole skill had been checked against the newer tree, and it has not.
