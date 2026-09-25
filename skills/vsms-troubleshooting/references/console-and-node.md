@@ -51,9 +51,15 @@ it, each of which passed every shape check:
   that diff rather than silencing it; what it must never show is the _structure_
   changing.
 
-The `vaam-ui` agent skill is a **copy** of the upstream repository's, at a named
-tag, tracked in `skills-lock.json`. Do not hand-edit it — the lockfile hashes it,
-so a local edit reads as drift.
+~~The `vaam-ui` agent skill is a **copy** of the upstream repository's, at a
+named tag, tracked in `skills-lock.json`.~~ **Corrected 2026-09-24** (checked
+against vsms `c8568575`): it is a **copy** of upstream's `skills/vaam-ui/`,
+tracked in `skills-lock.json` by source and content hash only. The lockfile
+records no tag, so it cannot say which release the copy matches. vsms's own
+`AGENTS.md` records that by hand ("Currently synced from `v0.2.0`" on that
+commit, while the package itself was already `0.2.4`), and a bump re-copies the
+skill and updates that line together. Do not hand-edit the copy — the lockfile
+hashes it, so a local edit reads as drift.
 
 ## `examples/*` is outside the pnpm workspace on purpose
 
