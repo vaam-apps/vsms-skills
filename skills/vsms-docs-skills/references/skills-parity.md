@@ -3,28 +3,28 @@
 The routing table for the parity rule. A change to the left-hand area needs the
 right-hand skill re-read, and usually edited.
 
-| You changed                                                             | Skill                         |
-| ----------------------------------------------------------------------- | ----------------------------- |
-| `schemas/vsms.cstack`, `backends/migrations/**`                         | `vsms-data-layer`             |
-| `sms-encoding`, `sms-msisdn`, the send path, `dlr.rs`                   | `vsms-messaging`              |
-| `sms-provider`, `sms-provider-http`                                     | `vsms-providers`              |
-| `sms-provider-orange-cm`, `sms-fake-orange`                             | `vsms-orange-cm`              |
-| `sms-provider-mtn`                                                      | `vsms-mtn`                    |
-| `sms-routing`, `worker/routing.rs`, `breaker.rs`, `grey_route_watch.rs` | `vsms-routing`                |
-| `sms-worker` anywhere else                                              | `vsms-worker`                 |
-| `sms-webhook`, `webhooks.rs`, `hooks.rs`, `drain.rs`, `reap_outbox.rs`  | `vsms-webhooks`               |
-| `router.rs`, `rbac.rs`, procedures, the wire contract                   | `vsms-api`                    |
-| `sms-auth`, `auth.rs`, `op.rs`, `login.rs`                              | `vsms-auth`                   |
-| `frontends/**`                                                          | `vsms-console`                |
-| `consent.rs`, `pepper.rs`, `audit_log.rs`, purge/anchor jobs            | `vsms-compliance`             |
-| `deploy/**`, Dockerfiles, `sms-metrics`, compose                        | `vsms-ops`                    |
-| `sms-test-support`, any `tests/` directory                              | `vsms-testing`                |
-| `sdks/**`, `examples/**`, the generated client                          | `vsms-sdks`                   |
-| Anything touching numbers, money, operators, quiet hours                | **also** `vsms-multi-country` |
-| `justfile`, `.xtask/**`, `.github/workflows/**`                         | `vsms-tooling`                |
-| A trap you only found by running it                                     | `vsms-troubleshooting`        |
-| The rules, error modelling, style                                       | `vsms-conventions`            |
-| Repository-wide orientation, or a new rule                              | `vsms`                        |
+| You changed                                                                                                    | Skill                         |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `schemas/vsms.cstack`, `backends/migrations/**`, `ADDED_BY_LATER_TABLES`                                       | `vsms-data-layer`             |
+| `sms-encoding`, `sms-msisdn`, the send path, `dlr.rs`                                                          | `vsms-messaging`              |
+| `sms-provider`, `sms-provider-http`                                                                            | `vsms-providers`              |
+| `sms-provider-orange-cm`, `sms-fake-orange`                                                                    | `vsms-orange-cm`              |
+| `sms-provider-mtn`                                                                                             | `vsms-mtn`                    |
+| `sms-routing`, `worker/routing.rs`, `breaker.rs`, `grey_route_watch.rs`                                        | `vsms-routing`                |
+| `sms-worker` anywhere else                                                                                     | `vsms-worker`                 |
+| `sms-webhook`, `webhooks.rs`, `hooks.rs`, `drain.rs`, `reap_outbox.rs`                                         | `vsms-webhooks`               |
+| `router.rs`, `rbac.rs`, procedures, the wire contract                                                          | `vsms-api`                    |
+| `sms-auth` (incl. `sso/`), `sms-fake-oidc`, `auth.rs`, `op.rs`, `login.rs`, `sso.rs`, `docs/runbooks/sso.adoc` | `vsms-auth`                   |
+| `frontends/**`                                                                                                 | `vsms-console`                |
+| `consent.rs`, `pepper.rs`, `audit_log.rs`, purge/anchor jobs                                                   | `vsms-compliance`             |
+| `deploy/**`, Dockerfiles, `sms-metrics`, compose                                                               | `vsms-ops`                    |
+| `sms-test-support`, any `tests/` directory                                                                     | `vsms-testing`                |
+| `sdks/**`, `examples/**`, the generated client                                                                 | `vsms-sdks`                   |
+| Anything touching numbers, money, operators, quiet hours                                                       | **also** `vsms-multi-country` |
+| `justfile`, `.xtask/**`, `.github/workflows/**`                                                                | `vsms-tooling`                |
+| A trap you only found by running it                                                                            | `vsms-troubleshooting`        |
+| The rules, error modelling, style                                                                              | `vsms-conventions`            |
+| Repository-wide orientation, or a new rule                                                                     | `vsms`                        |
 
 ## What earns a claim in `coverage.json`
 
@@ -41,6 +41,12 @@ writing the prose passes the gate and defeats the point.
    the sidecar and the source paths to that skill's `covers`, and stamp the
    skill with the vsms commit you verified against.
 4. Link the two PRs.
+
+A stamp is resolved in vsms's `main`, which is what CI checks out. While the
+vsms PR is unmerged, stamp its branch head and expect this repository's `verify`
+job to stay red until it merges; after a squash merge the branch commit is gone
+from `main`, so **re-stamp to the merge commit** rather than leave a stamp the
+gate cannot resolve. (First done for the Keycloak SSO change, 2026-10-20.)
 
 If you skip step 3, the gate turns red on the next push or the next daily run —
 which is the point. A red build is a better outcome than a confidently wrong

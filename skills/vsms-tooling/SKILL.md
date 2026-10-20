@@ -5,13 +5,13 @@ description: "Running anything in the vsms repository — the justfile, the elev
 
 # vsms-tooling
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
 > [VERSIONING.md](https://github.com/vaam-apps/vsms-skills/blob/main/VERSIONING.md).
 
-## `just ci` is the gate. `just all-checks` is not.
+## `just ci` is the gate, `just all-checks` is not
 
 ```bash
 just ci          # ALL 23 steps, in a pinned container, against its own Postgres
@@ -67,12 +67,28 @@ one module per check.
 | `r6`                                      | A `className`, `cn(...)`, class constant or raw markup in a view file       |
 | `docs-drift`                              | A documentation path that does not resolve                                  |
 | `workflow-paths`                          | A `dockerfile:`/`working-directory:` in a workflow that does not exist      |
-| `migrations-current`                      | A committed migration that disagrees with the schema                        |
+| `migrations-current`                      | A committed migration that disagrees with the schema (see below)            |
 | `bootstrap-sql-check`                     | `0002_bootstrap` disagreeing with §2.10 of the design doc                   |
 | `sdk-schema-check`                        | The Rust SDK's vendored schema drifting from the real one                   |
 | `node-sdk-types-check`                    | The Node SDK's hand-curated enum unions drifting                            |
 | `cratestack-pin` / `cratestack-pin-check` | Every copy of the pin disagreeing                                           |
 | `secret-env-args`                         | A secret passed as a process argument                                       |
+
+**`migrations-current` since 2026-10-19:** it compares `0001_init` with the
+generator's output **minus** two lists — `REWRITTEN_BY_LATER` (statements
+`0004_import_to_imported` rewrites) and `ADDED_BY_LATER_TABLES` (the tables
+`0005_sso_federation` adds, `FederatedLink`'s and `SsoTransaction`'s) — and
+requires each removed statement to appear **verbatim** in the later migration, so
+that migration cannot drift from `schemas/vsms.cstack`. Adding a model without
+adding it to the list fails; adding it to `0001_init` instead breaks a deployed
+database silently. Details and the procedure: the migrations page of
+`vsms-data-layer`.
+
+**`secret-env-args` covers five secret variables as of 2026-10-19**
+(`SECRET_ENV_VARS`), `SMS_SSO_CLIENT_SECRET` being the fifth; `SMS_SSO_CLIENT_ID`
+is not credential material and stays visible in `--help`, like the other
+`*_CLIENT_ID`s. A new secret-bearing flag needs an entry here **and** a sentinel
+in `help_never_prints_secret_env_values.rs`.
 
 `workflow-paths` exists because of a finding worth generalising:
 

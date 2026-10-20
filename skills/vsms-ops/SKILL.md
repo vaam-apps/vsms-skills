@@ -5,7 +5,7 @@ description: "Running vsms in production — distroless musl images with no shel
 
 # vsms-ops
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -41,8 +41,9 @@ sqlx's `migrate!` framework — that needs a flat file layout this repository's
 directory-per-migration shape does not match, and two bookkeeping tables would be
 worse than one.
 
-`build.rs` discovers migrations from disk, so a fourth needs a directory and no
-code change. `up.pre.sql`, when present, runs **in the same transaction**
+`build.rs` discovers migrations from disk, so a new one needs a directory and no
+code change (five exist as of 2026-10-19; see `vsms-data-layer` for why the
+fifth is a forward migration and not a regenerated `0001_init`). `up.pre.sql`, when present, runs **in the same transaction**
 immediately before `up.sql` — a guarantee two separate `raw_sql` calls against a
 bare connection would not give.
 
@@ -93,6 +94,38 @@ R5: **one umbrella chart** on `bjw-s` common ≥ v4, pinned, via a classic HTTP
 repo dependency (no OCI reference for that library chart exists — verified
 against the registry API, not assumed). Not a chart per service: everything
 shares a database, a migration ordering and a secret set.
+
+## Single sign-on settings (optional, since 2026-10-19)
+
+Keycloak SSO for the console is **off unless `SMS_SSO_ISSUER` (compose) /
+`sso.issuer` (Helm) is set**; there is no other switch. Operator setup is
+`docs/runbooks/sso.adoc`, the gateway-side behaviour is `vsms-auth`. What is
+specific to the deploy artefacts:
+
+- **Helm:** a `sso:` values block (`issuer`, `clientId`, `scopes`,
+  `requiredGroup`, `groupsClaim`, `acceptedAmr`, `acceptedAcr`, `jitRole`) plus
+  `existingSecrets.sso` (secret name; key `SMS_SSO_CLIENT_SECRET`) for the
+  client secret. **The callback is derived, not set:** `<oidcIssuer>/login/sso/callback`,
+  so it cannot disagree with the public origin — and that is the one URI to
+  register at Keycloak. Only the **gateway** controller gets any of it.
+- **`templates/common.yaml` strips every SSO env var from the gateway when
+  `sso.issuer` is empty** (including the `secretKeyRef`). A present-but-empty env
+  var is a value to clap, not an absence — the MTN hazard again. With `issuer`
+  set, a missing `clientId`, `requiredGroup` or secret name is a `required`
+  error at render time.
+- **Compose:** `deploy/docker-compose.yml` passes the ten `SMS_SSO_*` variables
+  through, blank by default; the gateway normalises blank SSO values to unset
+  itself, so that is safe (unlike MTN's). `deploy/.env.example` carries the block
+  commented out.
+- **`sms_auth` is in the gateway's default log filter** in the image, compose
+  (`SMS_GATEWAY_LOG`) and Helm (`RUST_LOG`) — discovery failures, an issuer
+  mismatch and a rejected client secret are logged by it. It was missing before
+  2026-10-19 and those errors were silently dropped.
+- **`deploy/Caddyfile` has a `sso_per_ip` zone** on `/login/sso/*` (30 events per
+  minute by default; `RATE_LIMIT_SSO_PER_IP_EVENTS` / `_WINDOW`). **It has not
+  been exercised:** the `rate_limit` module is not in the stock Caddy image and
+  `deploy/caddy.Dockerfile` is still not wired into compose. Keycloak is in
+  neither `compose.dev.yaml` nor `compose.demo.yaml`.
 
 ## Backup
 

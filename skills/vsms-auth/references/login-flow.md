@@ -15,6 +15,19 @@
    signature via the gateway's own JWKS, `iss`, `aud`, `exp`, and **`nonce`**.
    Then an encrypted session cookie.
 
+**Single sign-on enters through the same transaction.** "Sign in with Keycloak"
+(shown only when the gateway's discovery document carries
+`vsms_sso_login_endpoint`) is a plain link to `GET /api/auth/sso`, which mints a
+**fresh** `vsms_oidc_txn` on every click and redirects the browser to the
+gateway's `GET /login/sso/start` instead of POSTing a password to `/login`.
+Step 4 then runs unchanged — same `state` check, same `/token` exchange, same
+`id_token` verification — with one addition: the callback route handles a
+refusal arriving as `?error=...&state=...` **first**, verifying `state` against
+the cookie (so a forged error link cannot clear someone's in-progress login)
+and sending the browser to `/login?error=sso_failed` or `sso_unavailable`, both
+deliberately generic. The password form is always present. See
+`references/sso.md`.
+
 Both cookies are `jose` JWE, `HttpOnly`, `Secure` in production, `SameSite=Lax`.
 
 `frontends/apps/admin/lib/oidc.ts` is deliberately **Edge-and-Node-portable**
@@ -51,7 +64,10 @@ a lost refresh token on restart just forces a re-login.
 ## Not wired up
 
 - **Rate limiting on `/login` itself** — the class of gap already closed for
-  `/token`.
+  `/token`. (The two SSO routes do have limiters; `/login` still does not.)
+- **`lastLoginAt` is never stamped by the password path.** `schema.cstack`'s
+  `User` comment says a successful login stamps it; `authenticate_user` does
+  not, and nothing else on this path does. SSO sign-in stamps it (2026-10-19).
 - **`Session.role` is stamped `""`** — the `id_token` carries no role claim by
   design. Cosmetic; never a security boundary.
 - **Scope widening is now refused at `/authorize`.** A requested scope not in

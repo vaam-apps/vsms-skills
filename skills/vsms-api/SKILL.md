@@ -5,7 +5,7 @@ description: "The vsms wire contract — generated REST routes and procedures ve
 
 # vsms-api
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -17,16 +17,19 @@ Most of the surface is **generated**: `include_server_schema!` expands
 
 ## Three kinds of route
 
-| Kind                | Example                                                                                                    | Notes                             |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Generated CRUD      | `GET /messages`, `PATCH /providers/{id}`                                                                   | `GatewayAuth` + row-level policy  |
-| Generated procedure | `POST /$procs/sendMessage`                                                                                 | plus the procedure's own `@allow` |
-| Hand-rolled axum    | `POST /dlr/{providerKey}`, `POST /login`, `/token`, `/jwks.json`, discovery, `GET /healthz`, `GET /readyz` | each for a stated reason          |
+| Kind                | Example                                                                                                                        | Notes                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| Generated CRUD      | `GET /messages`, `PATCH /providers/{id}`                                                                                       | `GatewayAuth` + row-level policy  |
+| Generated procedure | `POST /$procs/sendMessage`                                                                                                     | plus the procedure's own `@allow` |
+| Hand-rolled axum    | `POST /dlr/{providerKey}`, `POST /login`, `GET /login/sso/*`, `/token`, `/jwks.json`, discovery, `GET /healthz`, `GET /readyz` | each for a stated reason          |
 
 A route is hand-rolled only when the generated shape cannot express it — a
 provider webhook carries no bearer token; the library's JWKS handler can publish
 only one signing key; the discovery document had no hook to advertise
-`private_key_jwt`.
+`private_key_jwt`. The two `/login/sso/*` routes run before any bearer token
+exists (since 2026-10-19; mounted only when SSO is configured — `vsms-auth`).
+The discovery document also carries a vendor member, `vsms_sso_login_endpoint`,
+exactly when SSO is configured.
 
 ## Calling a procedure from non-HTTP code
 
@@ -94,7 +97,7 @@ verbatim copy of `clientRef`.
 **Nothing gives a provider a dedup key.** That gap is real and accepted; a crash
 in the submit window produces two real submissions.
 
-## Three rate limiters, three keys
+## Three rate limiters, three keys (plus the SSO routes')
 
 | Where                | Key                                                       | Closes                              |
 | -------------------- | --------------------------------------------------------- | ----------------------------------- |
@@ -112,10 +115,17 @@ Deliberately **not** `X-Forwarded-For`: the compose stack has **two** internal
 callers of this router, and Compose assigns container IPs dynamically with no
 static allowlist to pin a trusted hop against.
 
-Both limiters set `StoreErrorPolicy::Deny` explicitly — the framework default
+Both of those limiters set `StoreErrorPolicy::Deny` explicitly — the framework default
 `Allow` is right for a _capacity_ control and wrong for a _security_ one. There
 is **no keyspace bound** at the pinned version; adopting the upstream one needs
 an explicit budget matched to these keys, not a bare bump.
+
+The SSO routes are limited separately, because `start` writes a database row and
+`callback` reads one before any authentication: an in-process token bucket in the
+gateway (a backstop: one key per route for the whole gateway, so not per-source;
+`429` with `Retry-After`, and `503` — fail closed — if the store errors) plus the
+`sso_per_ip` zone in `deploy/Caddyfile`, which is the per-source control and has
+not been exercised (see `vsms-ops`). `POST /login` itself has no limiter.
 
 ## RBAC
 

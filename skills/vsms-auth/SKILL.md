@@ -1,11 +1,11 @@
 ---
 name: vsms-auth
-description: "Identity in vsms — machine callers over private_key_jwt against an embedded OIDC provider with no shared secret anywhere, human login by authorization_code plus PKCE with Argon2id passwords, the two RBAC layers and their two vocabularies, and the synthetic system principal that must never be reachable from HTTP. Load when touching sms-auth, GatewayAuth, an @@allow clause's role logic, provisioning, or anything that decides who may do what."
+description: "Identity in vsms — machine callers over private_key_jwt against an embedded OIDC provider with no shared secret anywhere, human login by authorization_code plus PKCE with Argon2id passwords or, since 2026-10-19, brokered Keycloak single sign-on, the two RBAC layers and their two vocabularies, and the synthetic system principal that must never be reachable from HTTP. Load when touching sms-auth (including sms_auth::sso and sms-fake-oidc), GatewayAuth, /login/sso, an @@allow clause's role logic, provisioning, or anything that decides who may do what."
 ---
 
 # vsms-auth
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -52,9 +52,13 @@ Two operational facts:
 ## Human login
 
 **This system stores password hashes**, which it did not before — new security
-surface, not a footnote. Local Argon2id rather than federation, because
+surface, not a footnote. ~~Local Argon2id rather than federation, because
 federation needs a second security-sensitive OIDC _client_ implementation and an
-external IdP nobody has chosen, with nothing to prove it against end to end.
+external IdP nobody has chosen, with nothing to prove it against end to end.~~
+**Corrected 2026-10-19:** that was the reasoning at #194's time and all three
+conditions have since changed. Federation was built afterwards **as a second
+path beside** the password (next section), and local Argon2id stays as the
+break-glass path.
 
 **`UserCredential` is a separate model, and it had to be.** §2.0: _no
 field-level read masking; model-level access only._ A hash on `User` would come
@@ -78,6 +82,52 @@ them in, not a consolation: a deactivation takes effect within one TTL.
 
 `references/login-flow.md` has the full browser flow and what is **not** wired
 up.
+
+## Federated sign-in (Keycloak SSO): a broker, since 2026-10-19
+
+`sms-gateway` **stays the console's OpenID Provider** and becomes a relying
+party of the staff Keycloak realm for the one step the OP could not do itself:
+_who is this human?_ `GET /login/sso/start` and `GET /login/sso/callback`
+(raw axum routes in `backends/apps/sms-gateway/src/sso.rs`, beside `login.rs`,
+for the same reason: they run before any bearer token exists) answer it by
+sending the browser to Keycloak, verifying what comes back, and handing the
+**same** `Identity` to the **same, unmodified** `handle_authorize`. The console
+and `GatewayAuth` never see an upstream token, so `authenticate_human`, the
+per-request `User`/`Role` lookup and every `@@allow` are exactly what they
+were. The broker is `backends/crates/sms-auth/src/sso/`; the test double is
+`backends/crates/sms-fake-oidc`.
+
+The decisions, each of which a plausible change would undo:
+
+- **Identity is `(iss, sub)` in `FederatedLink`, never email**, and not
+  `User.subject` (that column is vsms's own OP subject). A Keycloak user whose
+  email a local account holds is refused (`email_in_use`), never merged.
+- **Provisioning is just-in-time, gated by an exact group name.** The first
+  sign-in of a user in `--sso-required-group` creates the `User` and its link
+  in one serializable transaction. A JIT user has **no password**.
+- **Roles stay local.** No claim — `role`, `roles`, `realm_access`, a group
+  name — ever sets a role. A JIT user gets `--sso-jit-role` (default
+  `support`; `system` and `app` refused at startup).
+- **A second factor is required, by claim, and fails closed.** `acr` in
+  `--sso-accepted-acr` **or** `amr` sharing a member with `--sso-accepted-amr`;
+  both lists empty is a startup failure. Keycloak's `acr` cannot express it —
+  the production rule is `amr = ["otp"]`, and `amr` is empty unless Keycloak is
+  configured for it. Read `vsms-troubleshooting` before touching this.
+- **One automatic retry.** When the group is fine and _only_ the MFA claim is
+  missing, the callback starts one fresh upstream sign-in with `prompt=login`;
+  a second miss is refused. Any other failure is refused at once.
+- **Refusals are generic to the browser** (`access_denied`) and precise in the
+  log (a fixed `reason` label, never a token or claim value).
+- **No feature flag.** SSO is active exactly when its settings are present; a
+  partial or invalid block refuses to start. A dead Keycloak never blocks boot
+  or password sign-in (discovery is lazy and cached).
+- **The console learns SSO exists from discovery:** the OP's discovery document
+  carries `vsms_sso_login_endpoint` exactly when SSO is configured.
+
+`references/sso.md` has the sequence and lifecycle diagrams, the order of the
+token checks, the file that owns each step, and what is not built (no
+back-channel logout, no `auth_time` check, no unlink/relink, one issuer).
+Operator setup is `docs/runbooks/sso.adoc`.
 
 ## RBAC: two layers, two vocabularies
 

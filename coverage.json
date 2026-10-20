@@ -47,7 +47,8 @@
         "ci/runner",
         "compose.test.yaml",
         ".github/workflows/ci.yml",
-        ".github/workflows/release.yml"
+        ".github/workflows/release.yml",
+        ".xtask/src/secret_env_args.rs"
       ]
     },
     "vsms-troubleshooting": {
@@ -55,7 +56,8 @@
         "compose.dev.yaml",
         "docs/runbooks/local-development.adoc",
         "docs/runbooks/getting-started.adoc",
-        "docs/runbooks/showcase.adoc"
+        "docs/runbooks/showcase.adoc",
+        "docs/runbooks/sso.adoc"
       ]
     },
     "vsms-docs-skills": {
@@ -75,7 +77,9 @@
         ".xtask/src/parity.rs",
         ".xtask/src/bootstrap_sql.rs",
         ".xtask/src/migrations_current.rs",
-        "ci/test-state-machine.sql"
+        "ci/test-state-machine.sql",
+        "backends/migrations/postgres/0004_import_to_imported",
+        "backends/migrations/postgres/0005_sso_federation"
       ]
     },
     "vsms-messaging": {
@@ -164,7 +168,16 @@
         "backends/apps/sms-gateway/src/op.rs",
         "backends/apps/sms-gateway/src/login.rs",
         "backends/crates/sms-auth/tests/rbac_layer2_live_postgres.rs",
-        "frontends/apps/admin/lib/oidc.ts"
+        "frontends/apps/admin/lib/oidc.ts",
+        "backends/crates/sms-auth/src/sso",
+        "backends/crates/sms-auth/src/sso.md",
+        "backends/apps/sms-gateway/src/sso.rs",
+        "backends/apps/sms-gateway/src/sso.md",
+        "backends/crates/sms-fake-oidc",
+        "backends/crates/sms-fake-oidc/src/lib.md",
+        "docs/runbooks/sso.adoc",
+        "frontends/apps/admin/lib/sso.ts",
+        "frontends/apps/admin/lib/sso-discovery.ts"
       ]
     },
     "vsms-console": {
@@ -180,7 +193,10 @@
         ".agents/skills/vaam-ui",
         "docs/design/console-redesign.md",
         "docs/design/better-auth-evaluation.md",
-        "docs/design/frontend-package-audit.md"
+        "docs/design/frontend-package-audit.md",
+        "frontends/apps/admin/app/api/auth/sso/route.ts",
+        "frontends/apps/admin/app/api/auth/callback/route.ts",
+        "frontends/apps/admin/app/login"
       ]
     },
     "vsms-compliance": {
@@ -210,7 +226,10 @@
         "docs/runbooks/deployment.adoc",
         "docs/runbooks/backup-restore.adoc",
         "docs/runbooks/alerting.adoc",
-        "backends/apps/vsms-demo-seed"
+        "backends/apps/vsms-demo-seed",
+        "deploy/charts/vsms/templates/common.yaml",
+        "deploy/charts/vsms/values.yaml",
+        "deploy/.env.example"
       ]
     },
     "vsms-testing": {
@@ -224,7 +243,11 @@
         "docs/runbooks/testing.adoc",
         "docs/runbooks/e2e-integration.adoc",
         "docs/runbooks/36-handset-gate.adoc",
-        "docs/runbooks/65-kill-orange-gate.adoc"
+        "docs/runbooks/65-kill-orange-gate.adoc",
+        "backends/crates/sms-auth/tests/sso_provider.rs",
+        "backends/crates/sms-auth/tests/sso_live_postgres.rs",
+        "backends/apps/sms-gateway/tests/sso_flow_live_postgres.rs",
+        "backends/apps/sms-gateway/tests/help_never_prints_secret_env_values.rs"
       ]
     },
     "vsms-sdks": {
@@ -239,7 +262,8 @@
         "docs/integrating.md",
         "docs/runbooks/releasing-sdks.adoc",
         ".xtask/src/sdk_schema.rs",
-        ".xtask/src/node_sdk_types.rs"
+        ".xtask/src/node_sdk_types.rs",
+        "sdks/rust/vsms-sdk-rust/schema.cstack"
       ]
     },
     "vsms-multi-country": {

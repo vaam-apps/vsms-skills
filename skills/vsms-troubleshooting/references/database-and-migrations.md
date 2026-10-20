@@ -1,6 +1,6 @@
 # Database and migrations
 
-## Check the CLI against the pin. Every time, not from memory.
+## Check the CLI against the pin, every time, not from memory
 
 The two numbers move independently — the CLI is a global install on whatever
 machine runs this, the pin is a file in the repository — and nothing automated
@@ -17,9 +17,23 @@ isolated prefix and put it on `PATH` for the regeneration.
 ## There is no snapshot, so every diff is the whole schema
 
 `cratestack migrate diff` has nothing to diff _against_, so it emits the
-complete current schema. **Regenerate `0001_init` wholesale**; never hand-write
-an incremental migration. Then regenerate `0002_bootstrap` from §2.10 of the
+complete current schema. ~~**Regenerate `0001_init` wholesale**; never hand-write
+an incremental migration.~~ **Corrected 2026-10-19:** that held only while no
+database had applied `0001_init`. `sms-migrate` records migrations by **name**, so
+a regenerated `0001_init` is never run on a database that already has it —
+`0004_import_to_imported` already said so, and `AGENTS.md`'s status line had not
+caught up. A new model is a **forward migration** (`0005_sso_federation`), with
+the new table named in `ADDED_BY_LATER_TABLES` in
+`.xtask/src/migrations_current.rs`; see `vsms-data-layer`,
+`references/migrations.md`. Then regenerate `0002_bootstrap` from §2.10 of the
 design doc with `cargo xtask bootstrap-sql`.
+
+**Why this failed quietly:** `migrations-current` used to compare `0001_init`
+with the _whole_ generator output, so adding models to `0001_init` both broke a
+deployed database and passed the check. It now strips the added tables from the
+generator output and requires them verbatim in the later migration. Symptom of
+getting it wrong: the check names the statement that differs — read it as "your
+copy in `0005` is not what the generator emits", not as a stale `0001_init`.
 
 The tool also writes a `schema.snapshot.json` as a side effect. **Delete it** —
 this repository does not use snapshot-based diffing and a stale one committed by
