@@ -1,11 +1,38 @@
 # Federated sign-in (Keycloak SSO), end to end
 
-True of the `feat/console-oidc-sso` branch of vsms as of 2026-10-19 (decisions
-by the owner that day; stamped on `SKILL.md`). Operator-side setup is
+True of vsms `7dfad661` (vaam-apps/vsms#429, merged 2026-10-20; decisions by
+the owner on 2026-10-19; stamped on `SKILL.md`), and of every release that
+includes it. Operator-side setup is
 `docs/runbooks/sso.adoc`; the design and its reasoning are
 `docs/architecture.md` §4.3, "Federated sign-in (Keycloak)"; the settled
 question is `OPEN_QUESTIONS.md` §1.4. This page is the part an agent changing
 the code needs.
+
+## Off unless configured, and nothing else turns it on
+
+SSO is opt-in per installation, so an installation that never configures it is
+not disrupted:
+
+- **The switch is the configuration itself.** In Helm it is `sso.issuer`: the
+  chart emits no `SMS_SSO_*` variable at all while it is empty. To the gateway
+  it is the five required settings (`--sso-issuer`, `--sso-client-id`,
+  `--sso-client-secret`, `--sso-redirect-uri`, `--sso-required-group`, or their
+  `SMS_SSO_*` variables). There is no `enabled` flag, and none must be added.
+- **None of the five set means SSO is off, and sign-in is exactly as before.**
+  The OP's discovery document has no `vsms_sso_login_endpoint`, the console
+  shows no "Sign in with Keycloak" button, and the SSO routes are not mounted:
+  `/login/sso/start` answers `404`. Blank values count as unset, which is how
+  the chart renders an empty block.
+- **Some of the five set means the gateway refuses to start**, naming what is
+  missing. So does an SSO block whose MFA lists are both empty.
+- **Pinned by tests.** `discovery_advertises_the_start_url_only_when_sso_is_configured`,
+  `a_configuration_that_cannot_enforce_its_rules_refuses_to_start` and
+  `blank_optional_values_as_the_chart_renders_them_are_treated_as_unset` in
+  `backends/apps/sms-gateway/tests/sso_flow_live_postgres.rs`; and
+  `nothing_set_means_sso_is_simply_not_configured`,
+  `a_partial_block_names_what_is_missing` and
+  `both_mfa_lists_empty_refuses_to_start` in
+  `backends/crates/sms-auth/src/sso/config.rs`.
 
 ## The interaction
 
