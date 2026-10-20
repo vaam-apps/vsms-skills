@@ -11,7 +11,7 @@ description: "Running anything in the vsms repository — the justfile, the elev
 > repository over this page. See
 > [VERSIONING.md](https://github.com/vaam-apps/vsms-skills/blob/main/VERSIONING.md).
 
-## `just ci` is the gate. `just all-checks` is not.
+## `just ci` is the gate, `just all-checks` is not
 
 ```bash
 just ci          # ALL 23 steps, in a pinned container, against its own Postgres

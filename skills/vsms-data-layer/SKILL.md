@@ -62,7 +62,7 @@ instance has been **flagged in advance** rather than found broken.
 The full table with exact error text is `docs/architecture.md` §2.0. The ones
 that will cost you an afternoon:
 
-**Will not compile or parse**
+### Will not compile or parse
 
 - **Scalar list fields panic the server macro.** `String[]` parses and emits DDL
   happily; only `include_server_schema!` fails. Multi-values are space-delimited
@@ -74,7 +74,7 @@ that will cost you an afternoon:
 - **Relation scalars require type-name equality**, including through
   `auth().x` comparisons.
 
-**Will compile, and be silently wrong**
+### Will compile, and be silently wrong
 
 - `@@use` instead of `@use` parses and does **not** expand the mixin.
 - **A misspelled `@@allow` action is dropped**, and deny-by-default makes that
@@ -85,7 +85,7 @@ that will cost you an afternoon:
   with a real `CHECK` and does nothing at all for a pattern; anything
   pattern-shaped needs a hand-written `CHECK` in `0002_bootstrap`.
 
-**Shape the schema**
+### Shape the schema
 
 - **Any `@default(...)` excludes the field from `CreateXInput`** — literals
   included. That is the _control_ behind `Message.state @default('accepted')`,

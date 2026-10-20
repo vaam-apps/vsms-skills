@@ -1,6 +1,6 @@
 # Database and migrations
 
-## Check the CLI against the pin. Every time, not from memory.
+## Check the CLI against the pin, every time, not from memory
 
 The two numbers move independently — the CLI is a global install on whatever
 machine runs this, the pin is a file in the repository — and nothing automated
