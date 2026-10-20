@@ -1,11 +1,11 @@
 ---
 name: vsms-troubleshooting
-description: "Diagnosing failures in the vsms repository where the error message is not the cause — silent empty results from a missing schema policy, migrations that disagree because the CLI does not match the pin, container and test-harness traps, demo and compose stacks that will not come up, TypeScript crashes tsc cannot see, and documented claims that turned out false. Load when something broke in vsms and the obvious reading of the symptom is not leading anywhere."
+description: "Diagnosing failures in the vsms repository where the error message is not the cause — silent empty results from a missing schema policy, migrations that disagree because the CLI does not match the pin or because a model was added to an already-applied 0001_init, Keycloak single sign-on that refuses a user who did everything right, container and test-harness traps, demo and compose stacks that will not come up, TypeScript crashes tsc cannot see, and documented claims that turned out false. Load when something broke in vsms and the obvious reading of the symptom is not leading anywhere."
 ---
 
 # vsms-troubleshooting
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `bba85b9c` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -13,20 +13,24 @@ description: "Diagnosing failures in the vsms repository where the error message
 
 ## Start here: the symptom-to-cause table
 
-| Symptom                                          | Very likely cause                                                                                        |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| A query returns **zero rows** and nothing errors | The model's `@@allow` omits `hasRole('system')`. Found **fifteen times**                                 |
-| `Forbidden` from a write that should be allowed  | Same, but on `update`/`delete`, where it fails _loudly_ — and may be absorbed by a best-effort call site |
-| `Forbidden` where you expected `NotFound`        | `@authorize`'s preflight cannot distinguish "no row" from "policy denies". Correct and permanent         |
-| `PreconditionFailed: If-Match header required`   | A `@version` model whose `.update()`/`.delete()` has no `.if_match(...)`. **`cargo check` stays green**  |
-| `migrate diff` shows a change nobody made        | The installed CLI does not match the `Cargo.toml` pin                                                    |
-| A test passes alone and fails in the suite       | Leftover rows from another test in the same binary's shared database, or a missing per-binary mutex      |
-| "No rustls crypto provider is configured"        | A **test** binary — its entry point is libtest, not the binary's `main`                                  |
-| A screen renders unstyled or crashes on a `null` | See `references/console-and-node.md` — two traps `tsc` cannot see                                        |
-| `just demo` fails building images                | The shared cargo cache-mount race. See `references/demo-and-compose.md`                                  |
-| `pnpm install` fails in `examples/*`             | That directory is **outside** the pnpm workspace on purpose                                              |
-| A worker is healthy and nothing moves            | No `Route` seeded, or a route naming a provider this process has no adapter for                          |
-| A webhook endpoint stops receiving               | Its circuit breaker is open (20 failures / 15 min), or a `410` deactivated it                            |
+| Symptom                                          | Very likely cause                                                                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| A query returns **zero rows** and nothing errors | The model's `@@allow` omits `hasRole('system')`. Found **fifteen times**                                                             |
+| `Forbidden` from a write that should be allowed  | Same, but on `update`/`delete`, where it fails _loudly_ — and may be absorbed by a best-effort call site                             |
+| `Forbidden` where you expected `NotFound`        | `@authorize`'s preflight cannot distinguish "no row" from "policy denies". Correct and permanent                                     |
+| `PreconditionFailed: If-Match header required`   | A `@version` model whose `.update()`/`.delete()` has no `.if_match(...)`. **`cargo check` stays green**                              |
+| `migrate diff` shows a change nobody made        | The installed CLI does not match the `Cargo.toml` pin                                                                                |
+| `migrations-current` fails after adding a model  | The table is not in `ADDED_BY_LATER_TABLES` / not copied verbatim into a forward migration — `references/database-and-migrations.md` |
+| A deployed database lacks a table you added      | You regenerated `0001_init`; `sms-migrate` applies by name and never re-runs it                                                      |
+| SSO refuses a user in the group with an OTP      | `amr` is empty: Keycloak's browser flow needs `default.reference.value` configs — `references/sso-and-keycloak.md`                   |
+| SSO sign-in fails and the log is silent          | `sms_auth` was missing from the log filter (fixed 2026-10-19); an older image still drops those errors                               |
+| A test passes alone and fails in the suite       | Leftover rows from another test in the same binary's shared database, or a missing per-binary mutex                                  |
+| "No rustls crypto provider is configured"        | A **test** binary — its entry point is libtest, not the binary's `main`                                                              |
+| A screen renders unstyled or crashes on a `null` | See `references/console-and-node.md` — two traps `tsc` cannot see                                                                    |
+| `just demo` fails building images                | The shared cargo cache-mount race. See `references/demo-and-compose.md`                                                              |
+| `pnpm install` fails in `examples/*`             | That directory is **outside** the pnpm workspace on purpose                                                                          |
+| A worker is healthy and nothing moves            | No `Route` seeded, or a route naming a provider this process has no adapter for                                                      |
+| A webhook endpoint stops receiving               | Its circuit breaker is open (20 failures / 15 min), or a `410` deactivated it                                                        |
 
 ## The single most common one, in full
 
@@ -52,7 +56,8 @@ naming the model and its broken policy, restore it.
 ## Diagnosing by area
 
 - `references/build-and-toolchain.md` — pins, MSRV, rustls providers, `cargo deny`
-- `references/database-and-migrations.md` — the CLI/pin skew, regeneration, `SM001`
+- `references/database-and-migrations.md` — the CLI/pin skew, regeneration, forward migrations, `SM001`
+- `references/sso-and-keycloak.md` — what Keycloak actually issues, and the refusals that look like bugs
 - `references/live-tests.md` — the harness, orphaned containers, cross-suite bleed
 - `references/demo-and-compose.md` — `just demo`, the build race, stale compose files
 - `references/console-and-node.md` — the two TypeScript traps, pnpm workspace scope

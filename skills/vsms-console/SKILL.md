@@ -5,7 +5,7 @@ description: "The vsms admin console — Next.js 15 with tRPC, R6's three-layer 
 
 # vsms-console
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `bba85b9c` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -58,6 +58,41 @@ component is fine; anything else needs a sentence in the PR.
 **What `cargo xtask r6` cannot see:** anything in `components/**` (it scans
 `app/` only), and a dumb component that fetches its own data. Both are
 review-only. It never fails on `useState`, because R6 permits ephemeral state.
+
+## "Sign in with Keycloak": nothing new, from the console's side (since 2026-10-19)
+
+**The console never talks to Keycloak and never sees an upstream token.** The
+gateway is still the console's OP; the button is another way to reach the
+gateway's authorize step (see the SSO page of `vsms-auth`). Four files, all
+under `frontends/apps/admin/`:
+
+- **`lib/sso-discovery.ts`** reads the gateway's OIDC discovery document (from
+  `SMS_AUTH_ISSUER`, which may be an internal address) for a
+  `vsms_sso_login_endpoint` member. **It never throws and never blocks a login**:
+  a 2 s timeout, a 10 s cache, any failure means "no SSO button". That member is
+  the only switch — there is **no console env var** to drift out of step with
+  the gateway's, and R4 holds because nothing here is required.
+- **`lib/sso.ts`** is pure and Edge-and-Node-portable (like `oidc.ts`). The
+  discovery value becomes a **redirect target**, so it is held to an absolute
+  `http(s)` URL whose path is exactly `/login/sso/start`, with no query,
+  fragment or credentials.
+- **`app/api/auth/sso/route.ts`** (`GET`) mints the **same** PKCE/state/nonce
+  transaction cookie as the password path — fresh on every click, so a stale one
+  from the login page cannot be what an SSO attempt completes against — and
+  redirects the browser to the gateway. If the gateway no longer advertises SSO,
+  the user lands on `/login?error=sso_unavailable` rather than a dead end.
+- **`app/api/auth/callback/route.ts`** handles a refusal arriving as
+  `?error=access_denied&state=...` **first**, verifying `state` against the
+  cookie before anything else. `access_denied` becomes `/login?error=sso_failed`;
+  `temporarily_unavailable` and `server_error` become `sso_unavailable`.
+
+The login page renders the button as an `<a>` styled with `buttonVariants` — a
+GET navigation, no client JS — only when discovery advertises SSO; **the
+password form is always there** (break-glass). Both error messages are generic
+on purpose (`login-errors.ts`, with a test that they never mention groups,
+factors or accounts): the reason is in the gateway's log only. The route
+handlers themselves are not unit-tested (they need `next/headers` and
+`@vsms/env`); the pure logic in `lib/sso.test.ts` is.
 
 ## The credential the console forwards
 

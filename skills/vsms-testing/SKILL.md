@@ -5,7 +5,7 @@ description: "Testing in vsms — the per-binary live-Postgres harness and its f
 
 # vsms-testing
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `bba85b9c` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -64,6 +64,45 @@ never submitted again.
 
 That last distinction is the point: the database records what this system
 _believes_ it did; the ledger records what the provider actually received.
+
+## The SSO suites, and a fake that is not Keycloak (since 2026-10-19)
+
+`backends/crates/sms-fake-oidc` is the second fake in this repository
+(`sms-fake-orange` is the first), and it is built on a small stateful `axum`
+app rather than `wiremock` for a reason worth keeping: the `nonce` and `state`
+the test sends must come back inside a token **signed at exchange time**, an
+authorization code is single use, and the PKCE challenge seen at `/authorize`
+must be checked at `/token`. Its `/authorize` is **browserless** — it answers
+`302 redirect_uri?code=...&state=...` at once, and a test plays the browser by
+following redirects by hand. Its point is that a scripted `LoginSpec` can be
+wrong on purpose (wrong `nonce`/`aud`/`iss`/`azp`, expired, no or unknown `kid`,
+an unknown signing key, `alg: none`, `HS256`, any `acr`/`amr`/`groups`), so every
+refusal in the broker is exercised by a token that is _actually_ malformed.
+Its signing keys are throwaway literals.
+
+| Suite                                         | Needs                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------ |
+| `sms-auth/tests/sso_provider.rs`              | no database                                                              |
+| `sms-auth/tests/sso_live_postgres.rs`         | live Postgres                                                            |
+| `sms-gateway/tests/sso_flow_live_postgres.rs` | live Postgres; spawns the **real** `sms-gateway` binary against the fake |
+
+**What the fake cannot prove:** Keycloak's own behaviour. The measured facts —
+`acr` is `"1"`/`"0"` and `amr` empty on the stock browser flow, OTP enrolment via
+a required action — came from a **by-hand** run against a real
+`quay.io/keycloak/keycloak:26.6.1` container on 2026-10-19 (no container test
+pattern exists here except for Postgres), and a fake scripted to say what the
+authors believe Keycloak says can only confirm the belief. Treat the runbook's
+"Verification performed" table as the evidence and the suites as its regression
+net. Guard-failure proofs were run for the nonce check, the algorithm
+allow-list, the group gate and MFA rule, the one-retry rule, single-use
+consumption, the `handle_authorize` dry run, and the link lookup ignoring
+`issuer` — each named test failed with the mechanism broken.
+
+Two test-shaped traps from that work: the golden-list guard
+(`system_context_golden_list_live_postgres.rs`) now names `FederatedLink` and
+`SsoTransaction` (`vsms-data-layer`); and `help_never_prints_secret_env_values.rs`
+gained a sentinel for `SMS_SSO_CLIENT_SECRET`, in step with the `secret-env-args`
+guard (`vsms-tooling`).
 
 ## `just ci`
 

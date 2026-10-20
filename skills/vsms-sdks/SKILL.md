@@ -5,7 +5,7 @@ description: "The vsms client surfaces — the Rust and Node SDKs, the generated
 
 # vsms-sdks
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `bba85b9c` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -62,7 +62,9 @@ any CI gate over those manifests.
 
 - **`cargo xtask sdk-schema-check`** — the Rust SDK's vendored `schema.cstack`
   must match `schemas/vsms.cstack` byte-for-byte. Forgetting to re-vendor has
-  turned CI red before.
+  turned CI red before. The vendored copy was re-vendored on 2026-10-19 for the
+  two SSO models (`sdks/rust/vsms-sdk-rust/schema.cstack` grew by the same 85
+  lines as `schemas/vsms.cstack`).
 - **`cargo xtask node-sdk-types-check`** — the Node SDK hand-curates four enum
   unions out of the schema, and nothing else checked that copy. The package is
   **published**, so a drift ships to integrators. Proven in **both** directions

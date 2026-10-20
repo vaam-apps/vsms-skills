@@ -1,7 +1,43 @@
 # Regenerating migrations
 
-Three migrations: `0001_init` (generated wholesale), `0002_bootstrap` (generated
-from §2.10 of `docs/architecture.md`), `0003_idempotency_table`.
+Five migrations as of 2026-10-19: `0001_init` (generated), `0002_bootstrap`
+(generated from §2.10 of `docs/architecture.md`), `0003_idempotency_table`,
+`0004_import_to_imported` and `0005_sso_federation`.
+
+~~"Three migrations."~~ **Corrected 2026-10-19:** this page said three after
+`0004` had already landed.
+
+## `0001_init` is no longer regenerated wholesale
+
+~~Regenerate `0001_init` wholesale on every schema change.~~ **Corrected
+2026-10-19:** once a deployment has applied `0001_init`, do not regenerate it.
+`sms-migrate` records migrations by name and would never run the new file there.
+Ship the change as a **forward migration**:
+
+- `0004_import_to_imported` rewrote enum values (`cratestack 0.13` reserves
+  `import`): a baseline snapshot of the previous schema produced the
+  `DROP`/`ADD CONSTRAINT` pairs, with the data `UPDATE`s hand-added between
+  each drop and add. It cannot live in `up.pre.sql`, which runs before `up.sql`
+  while the old `CHECK` still refuses the new value.
+- `0005_sso_federation` added two models. Copy the generator's `CREATE
+TABLE`/index/foreign-key statements into the new migration's `up.sql` (the
+  `DROP`s into `down.sql`), then add what the emitter cannot write: column
+  defaults, composite uniques, non-unique indexes.
+
+**Then tell `cargo xtask migrations-current`**, or it fails: list the new
+tables in `ADDED_BY_LATER_TABLES` (and point `ADDED_BY_LATER_DIR` at the
+migration) in `.xtask/src/migrations_current.rs`. It removes every generator
+statement that names those tables from the fresh output before comparing with
+`0001_init`, and requires each to appear **verbatim** in the later migration's
+`up.sql` (the `DROP`s in `down.sql`), so the forward migration cannot drift from
+`schemas/vsms.cstack` either. Changing one column in `0005` makes the check name
+the statement. The rewrite-an-existing-statement case has its own list,
+`REWRITTEN_BY_LATER`, for `0004`. Delete an entry when the migrations are
+squashed into a regenerated `0001_init`.
+
+The mistake this prevents is a quiet one: adding models to `0001_init` would
+both break a deployed database silently **and** pass the old check, because that
+check compared `0001_init` to the whole generator output.
 
 ## Step 0, every time: match the CLI to the pin
 
@@ -20,7 +56,11 @@ the CLI is wrong.
 Install the pinned CLI into an isolated prefix and put it on `PATH` for the
 regeneration. Do not regenerate with a mismatched CLI "just to see".
 
-## The workflow
+## The workflow: producing the generator's DDL
+
+The output overwrites `0001_init` only while no deployment has applied it;
+otherwise it is the source you copy statements from into a forward migration
+(above).
 
 ```bash
 cratestack migrate diff --schema schemas/vsms.cstack \

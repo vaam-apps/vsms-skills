@@ -45,6 +45,51 @@ to go stale first, and therefore the ones to re-verify soonest:
 - **Pinned versions** — cratestack, the authkestra family, the MSRV.
 - **Multi-country stage 1's four explicit gaps** (#356–#359).
 
+## Unreleased — Keycloak single sign-on for the admin console
+
+Verified against vsms
+[`bba85b9c`](https://github.com/vaam-apps/vsms/commit/bba85b9c8c98035e95678f8d1cc287b7fd740c14)
+(2026-10-20), the head of vsms's `feat/console-oidc-sso` branch (eight commits
+over `main`). **That commit is not on vsms's `main` yet**: until the vsms PR
+merges this repository's `verify` job cannot resolve the new stamps, and after a
+squash merge they must be re-pointed at the merge commit.
+
+**Skills changed:** `vsms-auth` (the new `references/sso.md`), `vsms-data-layer`,
+`vsms-troubleshooting` (the new `references/sso-and-keycloak.md`), `vsms-console`,
+`vsms-ops`, `vsms-api`, `vsms-testing`, `vsms-tooling`, `vsms-sdks` and `vsms`.
+The new runbook `docs/runbooks/sso.adoc`, the two `sso.md` sidecars and
+`sms-fake-oidc`'s `lib.md` are now claimed. Only the SSO-affected parts of those
+skills were re-verified; the other skills keep the `0dbde02a` stamp.
+
+**Claims that stopped being true** (each struck through and dated in the skill):
+
+- ~~Human login is local Argon2id **rather than** federation, because federation
+  needs an IdP nobody has chosen and nothing to prove it against.~~ Federation
+  was built as a **second path**; passwords stay as the break-glass path
+  (`vsms-auth`).
+- ~~Regenerate `0001_init` wholesale on every schema change.~~ True only until a
+  deployment applied it; `sms-migrate` records migrations by name. New models are
+  forward migrations, and `cargo xtask migrations-current` no longer compares
+  `0001_init` with the whole generator output (`vsms-data-layer`,
+  `vsms-troubleshooting`, `vsms-tooling`, `vsms`).
+- ~~Three migrations.~~ Five — this was already wrong after `0004`, which the
+  page did not mention.
+- ~~23 models~~ 25 as of 2026-10-19 (`FederatedLink`, `SsoTransaction`); ~~75
+  documentation sidecars~~ 78.
+- The gateway's default log filter now includes `sms_auth`; before, the broker's
+  discovery and client-secret errors would have been dropped (`vsms-ops`,
+  `vsms-troubleshooting`).
+
+**Added, for the first time:** the Keycloak traps measured against 26.6.1 — `acr`
+proves nothing, `amr` is empty until the browser flow's executions carry a
+`default.reference.value`, the one `prompt=login` retry — in
+`vsms-troubleshooting`; the Helm/compose/Caddy settings in `vsms-ops`; the fake
+IdP and its limits in `vsms-testing`.
+
+**Not covered:** the by-hand real-Keycloak run is a one-time measurement
+(2026-10-19), not something CI repeats; `deploy/Caddyfile`'s `sso_per_ip` zone
+was never exercised.
+
 ## v2026-09-18 — the docs → skills direction pointed at a structure that never existed
 
 `docs/flows/` was never real (see the correction above, in the initial-release

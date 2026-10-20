@@ -5,7 +5,7 @@ description: "Orientation for working in the vsms repository — a Rust + TypeSc
 
 # vsms
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `bba85b9c` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -31,7 +31,17 @@ configuration.
 vsms has no single feature index. "What does this system promise about X"
 is `docs/architecture.md`'s relevant numbered section first, then the `.md`
 sidecar next to the module that implements it (`#![doc = include_str!(...)]`
-— `dispatch.md`, `claim.md`, `op.md`, and 72 others under `backends/**/src/`).
+— `dispatch.md`, `claim.md`, `op.md`, and the rest under `backends/**/src/`: 75
+sidecars at `0dbde02a`, 78 as of 2026-10-19 — `sso.md` in `sms-auth` and in
+`sms-gateway`, and `lib.md` of `sms-fake-oidc`).
+
+`OPEN_QUESTIONS.md` is what is still undecided, and §1.4 ("local password or an
+external identity provider for humans?") is **not** any more: settled
+2026-10-19 as **both** — the gateway brokers sign-in to the staff Keycloak
+realm and keeps local passwords as the break-glass path (`vsms-auth`). What it
+leaves open: whether a Keycloak group is an acceptable stand-in for "may see
+every app's message metadata" (#211), and whether vsms sessions should end when
+the Keycloak session does.
 
 ## The one thing to get right
 
@@ -108,17 +118,17 @@ summary what you did _not_ do.
 
 ## Repository map
 
-| Path                            | What is in it                                                                                                                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `backends/crates/`              | The libraries: `sms-api`, `sms-auth`, `sms-worker`, `sms-routing`, `sms-provider*`, `sms-encoding`, `sms-msisdn`, `sms-webhook`, `sms-metrics`, `sms-core`, `sms-test-support` |
-| `backends/apps/`                | The binaries: `sms-gateway`, `sms-worker`, `sms-migrate`, `sms-fake-orange`, `vsms-demo-seed`                                                                                  |
-| `backends/migrations/postgres/` | Three migrations. `0001_init` is generated wholesale; `0002_bootstrap` is generated from §2.10 of the design doc. **Never hand-edit either**                                   |
-| `schemas/vsms.cstack`           | The CrateStack schema. **It compiles into `sms-api`** — a syntax error is a build failure                                                                                      |
-| `frontends/`                    | The pnpm workspace: `apps/admin` plus `packages/{gateway,api,env,hooks,sms-client}`                                                                                            |
-| `sdks/`, `examples/`            | Published SDKs and runnable examples. **`examples/*` is outside the pnpm workspace on purpose**                                                                                |
-| `.xtask/`                       | Every CI guard. No bash or Python survives in this repo                                                                                                                        |
-| `backends/**/src/*.md`          | The real feature index — one sidecar per module, pulled in via `#![doc = include_str!(...)]`. 75 of them as of `0dbde02a`                                                      |
-| `docs/runbooks/`                | AsciiDoc. How to operate it, including the two manual milestone gates                                                                                                          |
+| Path                            | What is in it                                                                                                                                                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backends/crates/`              | The libraries: `sms-api`, `sms-auth`, `sms-worker`, `sms-routing`, `sms-provider*`, `sms-encoding`, `sms-msisdn`, `sms-webhook`, `sms-metrics`, `sms-core`, `sms-test-support`, and the test doubles `sms-fake-orange` and (since 2026-10-19) `sms-fake-oidc` |
+| `backends/apps/`                | The binaries: `sms-gateway`, `sms-worker`, `sms-migrate`, `sms-fake-orange` (the process form of the crate of that name), `vsms-demo-seed`                                                                                                                    |
+| `backends/migrations/postgres/` | Five migrations as of 2026-10-19. `0001_init` is generated, `0002_bootstrap` is generated from §2.10 of the design doc: **never hand-edit either**. `0001_init` is **not** regenerated once applied — new models are forward migrations (`vsms-data-layer`)   |
+| `schemas/vsms.cstack`           | The CrateStack schema. **It compiles into `sms-api`** — a syntax error is a build failure                                                                                                                                                                     |
+| `frontends/`                    | The pnpm workspace: `apps/admin` plus `packages/{gateway,api,env,hooks,sms-client}`                                                                                                                                                                           |
+| `sdks/`, `examples/`            | Published SDKs and runnable examples. **`examples/*` is outside the pnpm workspace on purpose**                                                                                                                                                               |
+| `.xtask/`                       | Every CI guard. No bash or Python survives in this repo                                                                                                                                                                                                       |
+| `backends/**/src/*.md`          | The real feature index — one sidecar per module, pulled in via `#![doc = include_str!(...)]`. 78 of them as of 2026-10-19 (75 at `0dbde02a`)                                                                                                                  |
+| `docs/runbooks/`                | AsciiDoc. How to operate it, including the two manual milestone gates                                                                                                                                                                                         |
 
 ## Traps that have each cost this project real time
 
@@ -127,6 +137,13 @@ summary what you did _not_ do.
   library never produces.
 - **A policy-only `@@allow` change has no DDL consequence and must not be
   regenerated.**
+- **Do not regenerate `0001_init` once a deployment has applied it** —
+  `sms-migrate` records migrations by name, so the new file would never run
+  there. ~~"Regenerated wholesale on every schema change."~~ **Corrected
+  2026-10-19** (`vsms-data-layer`).
+- **Keycloak's `acr` says nothing about a second factor, and `amr` is empty
+  until Keycloak is configured for it.** Staff SSO accepts `amr = ["otp"]`;
+  see `vsms-troubleshooting`.
 - **`if_match` on a `@version` model is a _runtime_ requirement, not a
   compile-time one.** `cargo check` stays green across every call site that
   needs one. Grep for `Update<Model>Input`.
@@ -159,7 +176,7 @@ it used to say and was wrong about.
 | The worker — roles, leases, claim loops, dispatch, jobs   | `vsms-worker`          |
 | Events, the outbox, webhook delivery and signing          | `vsms-webhooks`        |
 | The wire contract, idempotency, rate limiting             | `vsms-api`             |
-| OAuth, `private_key_jwt`, human login, RBAC               | `vsms-auth`            |
+| OAuth, `private_key_jwt`, human login, Keycloak SSO, RBAC | `vsms-auth`            |
 | The admin console, R6, the gateway seam                   | `vsms-console`         |
 | Consent, quiet hours, opt-outs, retention, audit          | `vsms-compliance`      |
 | Images, compose, Helm, metrics, alerts, backup            | `vsms-ops`             |
