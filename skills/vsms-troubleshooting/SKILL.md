@@ -5,7 +5,7 @@ description: "Diagnosing failures in the vsms repository where the error message
 
 # vsms-troubleshooting
 
-> **Verified against vsms `bba85b9c` (2026-10-20).** Version-sensitive claims
+> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See

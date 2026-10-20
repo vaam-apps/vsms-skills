@@ -48,11 +48,12 @@ to go stale first, and therefore the ones to re-verify soonest:
 ## Unreleased — Keycloak single sign-on for the admin console
 
 Verified against vsms
-[`bba85b9c`](https://github.com/vaam-apps/vsms/commit/bba85b9c8c98035e95678f8d1cc287b7fd740c14)
-(2026-10-20), the head of vsms's `feat/console-oidc-sso` branch (eight commits
-over `main`). **That commit is not on vsms's `main` yet**: until the vsms PR
-merges this repository's `verify` job cannot resolve the new stamps, and after a
-squash merge they must be re-pointed at the merge commit.
+[`7dfad661`](https://github.com/vaam-apps/vsms/commit/7dfad661a828b63485b7e46bb056576c97e38d50)
+(2026-10-20), the squash merge of vaam-apps/vsms#429 into `main`. The pages were
+first written against that PR's branch head `bba85b9c` and re-stamped to the
+merge commit once it landed; the five commits in between (lint fixes, a random
+test password, the refusal labels gathered into `Refusal::reason()`) change no
+claim made here.
 
 **Skills changed:** `vsms-auth` (the new `references/sso.md`), `vsms-data-layer`,
 `vsms-troubleshooting` (the new `references/sso-and-keycloak.md`), `vsms-console`,
