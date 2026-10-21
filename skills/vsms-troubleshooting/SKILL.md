@@ -5,7 +5,7 @@ description: "Diagnosing failures in the vsms repository where the error message
 
 # vsms-troubleshooting
 
-> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
+> **Verified against vsms `90c0c705` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -27,6 +27,7 @@ description: "Diagnosing failures in the vsms repository where the error message
 | A test passes alone and fails in the suite                 | Leftover rows from another test in the same binary's shared database, or a missing per-binary mutex                                                                                                                                                                                                                          |
 | "No rustls crypto provider is configured"                  | A **test** binary — its entry point is libtest, not the binary's `main`                                                                                                                                                                                                                                                      |
 | A screen renders unstyled or crashes on a `null`           | See `references/console-and-node.md` — two traps `tsc` cannot see                                                                                                                                                                                                                                                            |
+| The console reloads on every click, or polls far too often | Plain anchors not routed client-side, or tuning numbers arriving as strings under `SKIP_ENV_VALIDATION` — `references/console-and-node.md`                                                                                                                                                                                   |
 | `just demo` fails building images                          | The shared cargo cache-mount race. See `references/demo-and-compose.md`                                                                                                                                                                                                                                                      |
 | `pnpm install` fails in `examples/*`                       | That directory is **outside** the pnpm workspace on purpose                                                                                                                                                                                                                                                                  |
 | A worker is healthy and nothing moves                      | No `Route` seeded, or a route naming a provider this process has no adapter for                                                                                                                                                                                                                                              |
@@ -67,7 +68,7 @@ naming the model and its broken policy, restore it.
 - `references/sso-and-keycloak.md` — what Keycloak actually issues, and the refusals that look like bugs
 - `references/live-tests.md` — the harness, orphaned containers, cross-suite bleed
 - `references/demo-and-compose.md` — `just demo`, the build race, stale compose files
-- `references/console-and-node.md` — the two TypeScript traps, pnpm workspace scope
+- `references/console-and-node.md` — the two TypeScript traps, page reloads and poll storms, pnpm workspace scope
 - `references/known-wrong-claims.md` — documented claims that were false
 
 ## The meta-rule

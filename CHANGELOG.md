@@ -45,6 +45,51 @@ to go stale first, and therefore the ones to re-verify soonest:
 - **Pinned versions** — cratestack, the authkestra family, the MSRV.
 - **Multi-country stage 1's four explicit gaps** (#356–#359).
 
+## Unreleased — the console on `@vaam-apps/ui` 0.5.0, client-side links and coerced tuning
+
+Verified against vsms
+[`90c0c705`](https://github.com/vaam-apps/vsms/commit/90c0c70525e55636dec39e8e8da7fbff4a95e8db)
+(2026-10-21), the squash merge of vaam-apps/vsms#436 into `main`.
+
+**Skills changed:** `vsms-console` (new sections on client-side links, tuning
+values in `@vsms/env`'s `tuning.ts`, 4xx-free query retries, the app-wide dumb
+components, and the 0.5.0 shell) and `vsms-troubleshooting` (a symptom row and a
+`references/console-and-node.md` section on reloads, poll storms and the 7 s
+skeleton). `vsms-console` now also claims `app/client-links.ts`,
+`app/use-client-links.ts`, `app/console-shell.tsx`, `components/`,
+`frontends/packages/env/src/tuning.ts` and `frontends/packages/hooks/src/retry.ts`.
+`vsms` lists no console routes and needed no change. Both pages were re-read in
+full against `90c0c705`; it is one commit past `f2662c7d`, and #436 touched only
+`frontends/**`, the vendored `vaam-ui` copy, `AGENTS.md`, `pnpm-workspace.yaml`
+and one sentence of `docs/runbooks/getting-started.adoc`.
+
+**Claims that stopped being true** (struck through and dated in the skill):
+
+- ~~The composer is the console's landing route at `/`, the dashboard at
+  `/dashboard`.~~ The dashboard is `/`, the composer is `/composer`, and
+  `/dashboard` redirects to `/` (`vsms-console`).
+- A tuning value declared with `z.coerce` in `@vsms/env` is a number. It was a
+  **string** whenever `SKIP_ENV_VALIDATION=1` was set, which both demo compose
+  files do; only the keys in `TUNING` are coerced anyway now (`vsms-console`,
+  `vsms-troubleshooting`).
+- The console's `SideNav` no longer runs `smallScreen="off-canvas"` inside a
+  daisyUI drawer; it uses the library's default floating mode
+  (`vsms-console`).
+
+**Added, for the first time:** `QUERY_STALE_TIME_MS` and `LIST_PAGE_SIZE`; the
+rule that a link to a server route must live under `/api/`; `shouldRetryQuery`.
+
+**vsms's own docs disagree with its code in two places, and the skill follows
+the code:** `AGENTS.md` and `client-links.ts`'s header call the click listener
+capture-phase, but `use-client-links.ts` registers it in the bubble phase (and
+says so); and `PageHeader`'s comment says its description is clamped, which the
+markup is not. `tuning.ts`'s note that Jobs pages client-side is stale too.
+
+**Also fixed, formatting only:** one bullet in `vsms-tooling` had been mangled by
+an earlier Prettier pass (`**/*.md` had become `**/_.md` with its spaces eaten),
+which kept the `prettier --check` job red on `main`. Restored to the wording
+vsms's `AGENTS.md` uses; no claim changed and the skill keeps its stamp.
+
 ## Unreleased — AWS End User Messaging SMS (`aws_sms`)
 
 Verified against vsms
