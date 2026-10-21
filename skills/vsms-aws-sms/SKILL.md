@@ -5,7 +5,8 @@ description: "AWS End User Messaging SMS in vsms (provider key aws_sms), the go-
 
 # vsms-aws-sms
 
-> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
+> **Verified against vsms `f2662c7d` (2026-10-21); `sms-fake-aws` against the
+> PR that adds it (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -294,6 +295,40 @@ restart the worker, _then_ add the route.
   `SignatureVersion` 1, `RawMessageDelivery` on, or a different Region all produce
   `403`s that lose receipts for good. The gateway log's `reason` names the check.
 
+## Without an account: `sms-fake-aws` (2026-10-21)
+
+`backends/crates/sms-fake-aws` (library) and `backends/apps/sms-fake-aws`
+(binary, package `sms-fake-aws-bin`) stand in for AWS the way `sms-fake-orange`
+stands in for Orange. They play both of AWS's parts: `SendTextMessage` (its own
+SigV4 verifier, a second implementation held to AWS's `get-vanilla` vector and
+rebuilt from the bytes and `Host` that arrived; a `FaultPolicy`; a `Ledger`) and
+the SNS topic (signed `Notification`s POSTed to `/dlr/aws_sms`, retried until a
+2xx). An exhausted `FaultPolicy::Scripted` answers `500`, not a silent accept.
+The RSA key and self-signed certificate are generated at start-up with `rsa` +
+`rcgen` (`ring` backend only); no key is committed.
+
+**What it proves:** the code agrees with our reading of AWS, over real HTTP and
+through the real signature code on both sides. **Not** that AWS behaves that way.
+
+**How a receiver comes to trust it.** Notifications name a `SigningCertURL` on
+AWS's real SNS host, so every check runs unchanged. The one seam is
+`sms_fake_aws::RedirectSnsHttp`: an `SnsHttp` that fetches the same path from the
+fake. Tests pass it to `AwsSmsProvider::receiver_with`. `sms-gateway` reaches it
+only through its **off-by-default `fake-aws` cargo feature**, which adds
+`serve --aws-sms-fake-sns-cert-base` / `AWS_SMS_FAKE_SNS_CERT_BASE`; a build
+without the feature cannot parse that flag (`a_release_build_has_no_fake_certificate_flag`).
+The gateway Dockerfile's `ARG CARGO_FEATURES=""` is how `compose.dev.yaml` turns
+it on (on every service sharing the `vsms-dev/sms-gateway:local` tag); the release
+workflow never sets it. Do not turn this into a runtime flag in every build: one
+stray env var would make a production gateway accept receipts anyone can sign.
+CI builds the feature (`ci.yml` `rust` job, `just ci` step 3), because a feature
+nobody enables is a silent skip.
+
+`just demo` runs `sms-fake-aws` beside `sms-fake-orange`, with `seed-dispatch-aws`
+adding an `aws_sms` catch-all at Orange's priority and weight, so traffic splits
+50/50. Fault modes (`--fault-mode happy|carrier-only|silent|sandbox|unreachable`)
+are in `docs/runbooks/aws-sms.adoc` "Without an AWS account".
+
 ## Tests
 
 The crate's tests need **no database and no `--ignored`** — plain `cargo test`.
@@ -306,3 +341,13 @@ fresh key and certificate (the fixtures' README says how). Guard-failure proofs
 (topic pinning, ignoring the signature result, the certificate host check, the
 gateway hook bypassed to a hard-coded `Ingest`) each failed the named test with the
 mechanism broken.
+
+`backends/crates/sms-fake-aws/tests/round_trip.rs` (12 tests, no database) drives
+the real adapter against the fake: signing, each error class, a post-accept
+timeout, tampering, redelivery, a subscription confirmation, and that without
+`RedirectSnsHttp` the certificate is sought on AWS's host.
+`backends/crates/sms-worker/tests/aws_sms_fake_live_postgres.rs` (4, `--ignored`)
+goes through dispatch and `sms_api::dlr::ingest`: `delivered` via a signed
+receipt, the sandbox refusal failing over to Orange, no `MessageId` held
+`uncertain` and never resent (asserted on the fake's ledger), and a tampered
+receipt refused on the route.
