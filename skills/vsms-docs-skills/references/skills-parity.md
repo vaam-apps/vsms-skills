@@ -3,28 +3,29 @@
 The routing table for the parity rule. A change to the left-hand area needs the
 right-hand skill re-read, and usually edited.
 
-| You changed                                                                                                    | Skill                         |
-| -------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `schemas/vsms.cstack`, `backends/migrations/**`, `ADDED_BY_LATER_TABLES`                                       | `vsms-data-layer`             |
-| `sms-encoding`, `sms-msisdn`, the send path, `dlr.rs`                                                          | `vsms-messaging`              |
-| `sms-provider`, `sms-provider-http`                                                                            | `vsms-providers`              |
-| `sms-provider-orange-cm`, `sms-fake-orange`                                                                    | `vsms-orange-cm`              |
-| `sms-provider-mtn`                                                                                             | `vsms-mtn`                    |
-| `sms-routing`, `worker/routing.rs`, `breaker.rs`, `grey_route_watch.rs`                                        | `vsms-routing`                |
-| `sms-worker` anywhere else                                                                                     | `vsms-worker`                 |
-| `sms-webhook`, `webhooks.rs`, `hooks.rs`, `drain.rs`, `reap_outbox.rs`                                         | `vsms-webhooks`               |
-| `router.rs`, `rbac.rs`, procedures, the wire contract                                                          | `vsms-api`                    |
-| `sms-auth` (incl. `sso/`), `sms-fake-oidc`, `auth.rs`, `op.rs`, `login.rs`, `sso.rs`, `docs/runbooks/sso.adoc` | `vsms-auth`                   |
-| `frontends/**`                                                                                                 | `vsms-console`                |
-| `consent.rs`, `pepper.rs`, `audit_log.rs`, purge/anchor jobs                                                   | `vsms-compliance`             |
-| `deploy/**`, Dockerfiles, `sms-metrics`, compose                                                               | `vsms-ops`                    |
-| `sms-test-support`, any `tests/` directory                                                                     | `vsms-testing`                |
-| `sdks/**`, `examples/**`, the generated client                                                                 | `vsms-sdks`                   |
-| Anything touching numbers, money, operators, quiet hours                                                       | **also** `vsms-multi-country` |
-| `justfile`, `.xtask/**`, `.github/workflows/**`                                                                | `vsms-tooling`                |
-| A trap you only found by running it                                                                            | `vsms-troubleshooting`        |
-| The rules, error modelling, style                                                                              | `vsms-conventions`            |
-| Repository-wide orientation, or a new rule                                                                     | `vsms`                        |
+| You changed                                                                                                                      | Skill                         |
+| -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `schemas/vsms.cstack`, `backends/migrations/**`, `ADDED_BY_LATER_TABLES`                                                         | `vsms-data-layer`             |
+| `sms-encoding`, `sms-msisdn`, the send path, `dlr.rs`                                                                            | `vsms-messaging`              |
+| `sms-provider` (including trait changes such as `authenticate_callback`), `sms-provider-http`                                    | `vsms-providers`              |
+| `sms-provider-orange-cm`, `sms-fake-orange`                                                                                      | `vsms-orange-cm`              |
+| `sms-provider-mtn`                                                                                                               | `vsms-mtn`                    |
+| `sms-provider-aws-sms`, `docs/runbooks/aws-sms.adoc`                                                                             | `vsms-aws-sms`                |
+| `sms-routing`, `worker/routing.rs`, `breaker.rs`, `grey_route_watch.rs`                                                          | `vsms-routing`                |
+| `sms-worker` anywhere else                                                                                                       | `vsms-worker`                 |
+| `sms-webhook`, `webhooks.rs`, `hooks.rs`, `drain.rs`, `reap_outbox.rs`                                                           | `vsms-webhooks`               |
+| `router.rs`, `rbac.rs`, procedures, the wire contract                                                                            | `vsms-api`                    |
+| `sms-auth` (incl. `sso/`), `sms-fake-oidc`, `auth.rs`, `op.rs`, `login.rs`, `sso.rs`, `owner_grant.rs`, `docs/runbooks/sso.adoc` | `vsms-auth`                   |
+| `frontends/**`                                                                                                                   | `vsms-console`                |
+| `consent.rs`, `pepper.rs`, `audit_log.rs`, purge/anchor jobs                                                                     | `vsms-compliance`             |
+| `deploy/**`, Dockerfiles, `sms-metrics`, compose                                                                                 | `vsms-ops`                    |
+| `sms-test-support`, any `tests/` directory                                                                                       | `vsms-testing`                |
+| `sdks/**`, `examples/**`, the generated client                                                                                   | `vsms-sdks`                   |
+| Anything touching numbers, money, operators, quiet hours                                                                         | **also** `vsms-multi-country` |
+| `justfile`, `.xtask/**`, `.github/workflows/**`                                                                                  | `vsms-tooling`                |
+| A trap you only found by running it                                                                                              | `vsms-troubleshooting`        |
+| The rules, error modelling, style                                                                                                | `vsms-conventions`            |
+| Repository-wide orientation, or a new rule                                                                                       | `vsms`                        |
 
 ## What earns a claim in `coverage.json`
 
