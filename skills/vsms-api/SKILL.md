@@ -146,3 +146,24 @@ See `vsms-auth`. The one thing to carry here: for `Job`, `Provider` read and
 `Route` read, the `@@allow` deliberately admits `auth().kind == "app"` **unscoped**
 — so Layer 2 is the **real perimeter**, not defence in depth. Treat a
 `kind == "app"` clause on a model with no `appId` as that declaration.
+
+**Only an `owner` may hand out `owner`** (vaam-apps/vsms#434, 2026-10-21; absent
+on a vsms without it, where an `admin` can grant itself `owner`). Two layers,
+because neither alone is enough:
+
+- **Schema.** `User` `create`/`update` admit `admin` only where
+  `roleKey != 'owner'`. A create policy is checked against the input, so an
+  admin cannot create an owner (this is what covers `provisionUser`). An update
+  policy compiles to `UPDATE … WHERE <policy>` on the **stored** row, so it
+  stops an admin editing an existing owner but **cannot see the new value**.
+- **Write-path guard** `owner_grant.rs` (`enforce_owner_grant_guard`, layered in
+  `router.rs` beside the RBAC layers). On `POST /users` and `PATCH /users/{id}`
+  it authenticates the caller like `enforce_route_permission` does; a non-owner's
+  body is decoded with the route's own codec and generated input type, and
+  `roleKey` naming `owner` is a `403` (undecodable `400`, unsupported media
+  `415`: fail closed). Owners pass unbuffered. A unit test fails the build if a
+  new `/users` write route is neither guarded nor classified.
+
+The general lesson for any "who may write which **value**" rule: a CrateStack
+update policy sees the old row only, so value rules on updates need a route
+guard. Adding a user write route? Put it in `owner_grant.rs`'s list.
