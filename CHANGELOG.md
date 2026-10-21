@@ -52,6 +52,127 @@ write-path guard (`owner_grant.rs`) so an `admin` can no longer grant, remove or
 deactivate `owner`, and why an update policy alone cannot enforce a rule about
 the value being written. Claims `owner_grant.rs` and its sidecar. The skill's
 stamp is unchanged until #434 merges; the paragraph names the PR and its date.
+## Unreleased — the console on `@vaam-apps/ui` 0.5.0, client-side links and coerced tuning
+
+Verified against vsms
+[`90c0c705`](https://github.com/vaam-apps/vsms/commit/90c0c70525e55636dec39e8e8da7fbff4a95e8db)
+(2026-10-21), the squash merge of vaam-apps/vsms#436 into `main`.
+
+**Skills changed:** `vsms-console` (new sections on client-side links, tuning
+values in `@vsms/env`'s `tuning.ts`, 4xx-free query retries, the app-wide dumb
+components, and the 0.5.0 shell) and `vsms-troubleshooting` (a symptom row and a
+`references/console-and-node.md` section on reloads, poll storms and the 7 s
+skeleton). `vsms-console` now also claims `app/client-links.ts`,
+`app/use-client-links.ts`, `app/console-shell.tsx`, `components/`,
+`frontends/packages/env/src/tuning.ts` and `frontends/packages/hooks/src/retry.ts`.
+`vsms` lists no console routes and needed no change. Both pages were re-read in
+full against `90c0c705`; it is one commit past `f2662c7d`, and #436 touched only
+`frontends/**`, the vendored `vaam-ui` copy, `AGENTS.md`, `pnpm-workspace.yaml`
+and one sentence of `docs/runbooks/getting-started.adoc`.
+
+**Claims that stopped being true** (struck through and dated in the skill):
+
+- ~~The composer is the console's landing route at `/`, the dashboard at
+  `/dashboard`.~~ The dashboard is `/`, the composer is `/composer`, and
+  `/dashboard` redirects to `/` (`vsms-console`).
+- A tuning value declared with `z.coerce` in `@vsms/env` is a number. It was a
+  **string** whenever `SKIP_ENV_VALIDATION=1` was set, which both demo compose
+  files do; only the keys in `TUNING` are coerced anyway now (`vsms-console`,
+  `vsms-troubleshooting`).
+- The console's `SideNav` no longer runs `smallScreen="off-canvas"` inside a
+  daisyUI drawer; it uses the library's default floating mode
+  (`vsms-console`).
+
+**Added, for the first time:** `QUERY_STALE_TIME_MS` and `LIST_PAGE_SIZE`; the
+rule that a link to a server route must live under `/api/`; `shouldRetryQuery`.
+
+**vsms's own docs disagree with its code in two places, and the skill follows
+the code:** `AGENTS.md` and `client-links.ts`'s header call the click listener
+capture-phase, but `use-client-links.ts` registers it in the bubble phase (and
+says so); and `PageHeader`'s comment says its description is clamped, which the
+markup is not. `tuning.ts`'s note that Jobs pages client-side is stale too.
+
+**Also fixed, formatting only:** one bullet in `vsms-tooling` had been mangled by
+an earlier Prettier pass (`**/*.md` had become `**/_.md` with its spaces eaten),
+which kept the `prettier --check` job red on `main`. Restored to the wording
+vsms's `AGENTS.md` uses; no claim changed and the skill keeps its stamp.
+
+## Unreleased — AWS End User Messaging SMS (`aws_sms`)
+
+Verified against vsms
+[`f2662c7d`](https://github.com/vaam-apps/vsms/commit/f2662c7d) (2026-10-21), the
+squash-merge commit of vaam-apps/vsms#435.
+
+**Also folded in, because the gate checks the whole tree:** vaam-apps/vsms#434
+(only an owner may grant, remove or deactivate `owner`) merged to vsms `main`
+first and added `sms-api/src/owner_grant.md` with no skill covering it.
+`vsms-auth` gains a section on its two halves (the `User` policy, and the
+request-body guard on `POST /users` / `PATCH /users/{id}`) and claims
+`owner_grant.rs`, `owner_grant.md` and `role_escalation_live_postgres.rs`.
+
+**New skill:** `vsms-aws-sms` — twenty-two skills now. It covers why this is End
+User Messaging and not SNS `Publish`, the worker-sends / gateway-receives split,
+hand-written SigV4, the error and event mappings (including the final
+`TEXT_SUCCESSFUL` → `Delivered` overstatement and the `isFinal` rule), how an
+Amazon SNS callback is authenticated, configuration, AWS-only provisioning,
+routing beside other rails, and what has never run live. The four new
+`sms-provider-aws-sms/src/*.md` sidecars and `docs/runbooks/aws-sms.adoc` are
+claimed by it, **each by its own path** — a directory claim on a crate that
+arrived after the baseline covers none of its sidecars.
+
+**Skills changed:** `vsms-providers` (the `authenticate_callback` hook),
+`vsms-messaging` (DLR section), `vsms-api`, `vsms-worker`, `vsms-tooling`,
+`vsms-ops`, `vsms-routing`, `vsms-multi-country`, `vsms-troubleshooting`, `vsms`
+and `vsms-docs-skills` (the routing table). Only the AWS-related parts of those
+were re-verified; the rest of each page was not re-read against `f2662c7d`.
+
+**Claims that stopped being true** (each struck through and dated in the skill):
+
+- ~~The worker's provider registry has exactly **one** entry (`orange_cm`).~~ Up
+  to three — `orange_cm`, `mtn_cm`, `aws_sms` — each built from its own
+  all-or-none flag group (`vsms-providers`, `vsms-worker`).
+- ~~**No signature verification exists** for any provider.~~ `aws_sms`
+  authenticates every callback through the new `SmsProvider::authenticate_callback`
+  hook; `orange_cm` and `mtn_cm` still do not (`vsms-messaging`, `vsms-providers`).
+- ~~`secret-env-args` covers five secret variables.~~ Six: `AWS_SMS_SECRET_ACCESS_KEY`
+  is the sixth (`vsms-tooling`).
+- ~~A new secret-bearing flag needs a sentinel in
+  `help_never_prints_secret_env_values.rs`.~~ That test spawns only `sms-gateway`
+  and sets four sentinels, so the worker's `MTN_CLIENT_SECRET` and
+  `AWS_SMS_SECRET_ACCESS_KEY` — and the gateway's own `MTN_CLIENT_SECRET` — are
+  guarded by the **static** check alone. This was never true of them; the page
+  implied otherwise (`vsms-tooling`).
+- ~~78 documentation sidecars~~ 82 (`vsms`).
+- A late provider receipt no longer trips `SM001` for any provider: ingestion
+  proposes a transition only when it is a legal edge from the message's current
+  state, so a `delivered` arriving after `expired` is recorded and changes nothing
+  (`vsms-messaging`).
+- ~~An SNS `SubscriptionConfirmation` is confirmed automatically by the gateway.~~
+  It is never visited: the gateway logs the `aws sns confirm-subscription` command
+  and a human runs it with `--authenticate-on-unsubscribe true`. vsms's own
+  `AGENTS.md` section on this provider still said otherwise when this was written
+  (`vsms-aws-sms`).
+
+**Added, for the first time:** `sms-gateway bootstrap --skip-seed-dispatch` and the
+AWS-only provisioning recipe (`vsms-ops`, `vsms-aws-sms`); `AWS_SMS_TIME_TO_LIVE_SECONDS`
+(`vsms-aws-sms`, `vsms-ops`); the `403` / `503` / `200` response semantics of
+`POST /dlr/{providerKey}` (`vsms-api`, `vsms-messaging`).
+
+**Found while writing it, and fixed in vsms before merge:** the gateway's default
+log filter did not name `sms_provider_aws_sms`, so the subscription-confirmation
+command and the adapter's two `error` lines would have been silently dropped —
+the same trap `sms_auth` fell into on 2026-10-19. Probed against
+`tracing-subscriber` with the exact filter string; the target is now in all four
+default strings (binary, compose, `.env.example`, Helm).
+
+**Left alone, still stale from earlier work:** `vsms-mtn` still says MTN is "not
+wired up", that the registry has one entry, and describes the invented
+aggregator placeholder that the MADAPI rewrite replaced; `vsms-orange-cm` still
+describes `receiptRequest.callbackData` as load-bearing for DLR correlation,
+which the Orange DLR rewrite removed. Neither is touched by this change.
+
+**Not covered:** nothing has run against a live AWS account, and neither have
+these pages.
 
 ## Unreleased — Keycloak single sign-on for the admin console
 

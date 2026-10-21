@@ -5,7 +5,7 @@ description: "Route selection in vsms — the pure sms-routing engine with its i
 
 # vsms-routing
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -84,6 +84,31 @@ See `references/failover-and-breakers.md`. The three facts to carry:
 - **`Route.failoverRouteId` is not what performs the failover.** The engine is
   asked again over the whole route set with the failed route in `exclude`.
 - **Capped at two hops** — "beyond that you're not routing, you're spraying."
+
+## Splitting traffic once operators unlock (2026-10-21)
+
+**No routing code changed to add `aws_sms`.** The way to run AWS beside Orange and
+MTN with the engine as it is: per operator, a **priority band** holding that
+operator's direct route and an AWS route, split by **weight** (the runbook's
+example is 70/30); plus a **lower-priority wildcard AWS route** for Camtel,
+Nexttel, unknown and foreign numbers and as the last fallback. The band wins on
+priority, so the wildcard is never drawn for an MTN number; if the chosen route
+fails with `Permanent` or `Unavailable`, the engine re-runs with it excluded and
+the AWS member of the same band is next, then the wildcard, then the two-hop cap.
+
+Two consequences worth holding:
+
+- **There is no "failover only" flag.** A weight-`0` member is never drawn while a
+  heavier one is eligible, yet stays a candidate once the heavy one is excluded.
+  Simulate it (`simulateRoute`) before trusting it.
+- **A fresh `seed-dispatch` leaves a priority-0, weight-1 wildcard per provider.**
+  Two of them at equal priority split 50/50 — the starting point for a split, but
+  a trap if the second provider's adapter is not in the worker (retried forever).
+  `vsms-aws-sms` has the AWS-only recipe.
+
+`matchOperator` is a hint (portability, contested prefixes) and is `unknown` for
+foreign numbers, so build a route set that stays correct when the guess is wrong —
+every band including AWS does.
 
 ## Grey routes
 

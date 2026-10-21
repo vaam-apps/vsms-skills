@@ -114,6 +114,16 @@
         "backends/crates/sms-provider-mtn/src/token.md"
       ]
     },
+    "vsms-aws-sms": {
+      "covers": [
+        "backends/crates/sms-provider-aws-sms",
+        "backends/crates/sms-provider-aws-sms/src/lib.md",
+        "backends/crates/sms-provider-aws-sms/src/sns.md",
+        "backends/crates/sms-provider-aws-sms/src/events.md",
+        "backends/crates/sms-provider-aws-sms/src/sigv4.md",
+        "docs/runbooks/aws-sms.adoc"
+      ]
+    },
     "vsms-routing": {
       "covers": [
         "backends/crates/sms-routing",
@@ -179,7 +189,10 @@
         "backends/crates/sms-fake-oidc/src/lib.md",
         "docs/runbooks/sso.adoc",
         "frontends/apps/admin/lib/sso.ts",
-        "frontends/apps/admin/lib/sso-discovery.ts"
+        "frontends/apps/admin/lib/sso-discovery.ts",
+        "backends/crates/sms-api/src/owner_grant.rs",
+        "backends/crates/sms-api/src/owner_grant.md",
+        "backends/crates/sms-api/tests/role_escalation_live_postgres.rs"
       ]
     },
     "vsms-console": {
@@ -198,7 +211,13 @@
         "docs/design/frontend-package-audit.md",
         "frontends/apps/admin/app/api/auth/sso/route.ts",
         "frontends/apps/admin/app/api/auth/callback/route.ts",
-        "frontends/apps/admin/app/login"
+        "frontends/apps/admin/app/login",
+        "frontends/apps/admin/app/client-links.ts",
+        "frontends/apps/admin/app/use-client-links.ts",
+        "frontends/apps/admin/app/console-shell.tsx",
+        "frontends/apps/admin/components",
+        "frontends/packages/env/src/tuning.ts",
+        "frontends/packages/hooks/src/retry.ts"
       ]
     },
     "vsms-compliance": {

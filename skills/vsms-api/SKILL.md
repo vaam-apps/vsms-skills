@@ -5,7 +5,7 @@ description: "The vsms wire contract — generated REST routes and procedures ve
 
 # vsms-api
 
-> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
+> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -30,6 +30,19 @@ only one signing key; the discovery document had no hook to advertise
 exists (since 2026-10-19; mounted only when SSO is configured — `vsms-auth`).
 The discovery document also carries a vendor member, `vsms_sso_login_endpoint`,
 exactly when SSO is configured.
+
+## `POST /dlr/{providerKey}` can answer `403` and `503`
+
+Beyond `200` and `400`, the route returns `404` when no adapter is configured
+under that key, **`403`** when the provider's `authenticate_callback` refuses the
+call (nothing is parsed or stored), and **`503`** when the check could not run — a
+signing certificate could not be fetched, or the fetch was rate limited — so the
+sender is asked to redeliver. `403` is final for Amazon SNS and `503` is retried,
+which is why the two are never conflated (`vsms-aws-sms`, since 2026-10-21).
+The route is mounted for `aws_sms` only when the gateway has
+`--aws-sms-events-topic-arn` (`AWS_SMS_EVENTS_TOPIC_ARN`), the one AWS setting it
+reads; it exits at startup if that is set and no `Provider` row keyed `aws_sms`
+exists.
 
 ## Calling a procedure from non-HTTP code
 

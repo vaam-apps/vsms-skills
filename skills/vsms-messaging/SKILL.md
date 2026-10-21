@@ -5,7 +5,7 @@ description: "The message path in vsms — the eleven-state lifecycle and why Po
 
 # vsms-messaging
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -111,8 +111,25 @@ no bearer token. Match on `providerMessageRef`, falling back to
 
 - **A retryable failure arriving while a message is `uncertain` must land in
   `failed`** — `uncertain → undelivered` is not a legal edge.
-- **No signature verification exists** for any provider. `RawCallback` preserves
-  exact bytes so verification can be added retroactively against stored evidence.
+- ~~**No signature verification exists** for any provider.~~ **Corrected
+  2026-10-21:** `aws_sms` authenticates every callback (Amazon SNS signs each
+  delivery); `orange_cm` and `mtn_cm` still do not, because neither documents a
+  scheme. The gateway calls `SmsProvider::authenticate_callback` before parsing
+  anything (`vsms-providers`, `vsms-aws-sms`). `RawCallback` still preserves exact
+  bytes so a scheme can be added against stored evidence.
+- **Response semantics:** `403` when authentication refuses the call (nothing
+  parsed or stored), `200` for an authentic handshake with no delivery update, `503`
+  when the check could not run, `400` for a body `parse_dlr` cannot read, and
+  `200 OK` on a successful ingest — not `202`, which is the _send_ endpoint's rule.
+  A `404` means only that no adapter is configured under that key.
+- **A receipt proposes a transition only when it is a legal edge from the
+  message's current state, for every provider** (2026-10-21).
+  `next_state(current, outcome)` returns `None` for pre-submit and terminal states
+  and for a same-state repeat. A late receipt — a `delivered` arriving after
+  `expire_stale` has already made the message `expired`, as AWS's can up to 72
+  hours on — is still recorded as a `DeliveryReceipt` but changes nothing. Before
+  this it proposed `expired → delivered`, the trigger raised `SM001`, and the
+  `sms_sm001_total` alert counted a non-fault. **`SM001` must mean a bug.**
 - A DLR **can arrive before the submit response is persisted**, at which instant
   neither reference is set, so it is silently dropped and the message reaches a
   terminal state via `expire_stale`. Not stuck, not wrongly `delivered`. The

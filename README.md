@@ -18,7 +18,7 @@ npx skills add https://github.com/vaam-apps/vsms-skills --skill vsms
 
 Start with `vsms`. It is the orientation skill and it routes to the rest. Adding
 more later is the same command with a different `--skill`; `--skill '*'` takes
-all twenty-one.
+all twenty-two.
 
 ## Upgrading
 
@@ -63,6 +63,7 @@ silently overwrites it. Send a PR here instead.
 | [`vsms-providers`](skills/vsms-providers/)             | The `SmsProvider` port, the error taxonomy, adding a rail                 |
 | [`vsms-orange-cm`](skills/vsms-orange-cm/)             | Orange Cameroon specifics, and the fault-injecting fake                   |
 | [`vsms-mtn`](skills/vsms-mtn/)                         | MTN via a licensed aggregator — and what is placeholder                   |
+| [`vsms-aws-sms`](skills/vsms-aws-sms/)                 | AWS End User Messaging SMS (`aws_sms`) and its SNS receipts               |
 | [`vsms-routing`](skills/vsms-routing/)                 | Route selection, failover, circuit breakers, grey routes                  |
 | [`vsms-worker`](skills/vsms-worker/)                   | Roles, leases, claim loops, dispatch, the job queue                       |
 | [`vsms-webhooks`](skills/vsms-webhooks/)               | Events, the outbox, delivery, the signature scheme                        |

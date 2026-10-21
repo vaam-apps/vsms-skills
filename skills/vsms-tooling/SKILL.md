@@ -5,7 +5,7 @@ description: "Running anything in the vsms repository — the justfile, the elev
 
 # vsms-tooling
 
-> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
+> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -84,11 +84,23 @@ adding it to the list fails; adding it to `0001_init` instead breaks a deployed
 database silently. Details and the procedure: the migrations page of
 `vsms-data-layer`.
 
-**`secret-env-args` covers five secret variables as of 2026-10-19**
-(`SECRET_ENV_VARS`), `SMS_SSO_CLIENT_SECRET` being the fifth; `SMS_SSO_CLIENT_ID`
-is not credential material and stays visible in `--help`, like the other
-`*_CLIENT_ID`s. A new secret-bearing flag needs an entry here **and** a sentinel
-in `help_never_prints_secret_env_values.rs`.
+~~**`secret-env-args` covers five secret variables as of 2026-10-19**~~ **It
+covers six as of 2026-10-21** (`SECRET_ENV_VARS`): `DATABASE_URL`,
+`SMS_HASH_PEPPER`, `ORANGE_CM_CLIENT_SECRET`, `MTN_CLIENT_SECRET`,
+`SMS_SSO_CLIENT_SECRET` and, sixth, `AWS_SMS_SECRET_ACCESS_KEY`.
+`SMS_SSO_CLIENT_ID` and `AWS_SMS_ACCESS_KEY_ID` are not credential material and
+stay visible in `--help`, like the other `*_CLIENT_ID`s. A new secret-bearing flag
+needs an entry here.
+
+> ~~A new secret-bearing flag needs **a sentinel** in
+> `help_never_prints_secret_env_values.rs` too.~~ **Corrected 2026-10-21:** that
+> test spawns **only `sms-gateway`** and sets four sentinels (`DATABASE_URL`,
+> `SMS_HASH_PEPPER`, `ORANGE_CM_CLIENT_SECRET`, `SMS_SSO_CLIENT_SECRET`). The
+> worker's secrets — `MTN_CLIENT_SECRET` and `AWS_SMS_SECRET_ACCESS_KEY` live on
+> `sms-worker` — and the gateway's own `MTN_CLIENT_SECRET` are guarded **by the
+> static check only**; no test runs `sms-worker --help` with a sentinel. Do not
+> read a green runtime test as covering them, and add a sentinel when a secret is
+> added to a binary that test already spawns.
 
 `workflow-paths` exists because of a finding worth generalising:
 
@@ -128,7 +140,7 @@ that are easy to get wrong:
 - **Write the filters as positive lists.** `'**'` followed by `'!'` exclusions
   does _not_ subtract — paths-filter ORs its rules, so every job runs always and
   the configuration merely looks like it filters.
-- **`**/*.md` is compiled input here**, not prose: the `.md` doc sidecars are
+- `**/*.md` **is compiled input here**, not prose: the `.md` doc sidecars are
   pulled in by `include_str!` and have broken `clippy -D warnings`. Only
   root-level `*.md` and `docs/**` are safe to treat as prose.
 - **Gate with a per-job `if:`, never `on.pull_request.paths`.** A skipped job

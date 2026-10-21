@@ -5,7 +5,7 @@ description: "Running vsms in production — distroless musl images with no shel
 
 # vsms-ops
 
-> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
+> **Verified against vsms `f2662c7d` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -62,6 +62,11 @@ is extracted and shared, so nothing exists twice.
   the previous key's overlap clock early.
 - **`seed-dispatch` seeds a `Provider` _and_ a catch-all `Route`.** Without the
   route, the deployment comes up healthy and rejects every message.
+- **`bootstrap --skip-seed-dispatch` (since 2026-10-21) skips step 2.** Step 2 is
+  hardcoded to `orange_cm`; in a deployment that will not send through Orange, a
+  later `seed-dispatch` for another provider leaves **two identical catch-all
+  routes** that the engine draws 50/50 between, and half of all traffic goes to a
+  provider the worker has no adapter for. See the AWS section below and `vsms-aws-sms`.
 - `create-app` writes the first production `App`, which no HTTP token can.
 
 ## Three things that were broken by construction
@@ -126,6 +131,51 @@ specific to the deploy artefacts:
   been exercised:** the `rate_limit` module is not in the stock Caddy image and
   `deploy/caddy.Dockerfile` is still not wired into compose. Keycloak is in
   neither `compose.dev.yaml` nor `compose.demo.yaml`.
+
+## AWS End User Messaging settings (since 2026-10-21)
+
+Optional, and the deploy-artefact half of `vsms-aws-sms` (the runbook is
+`docs/runbooks/aws-sms.adoc`). Two halves, two binaries, two different switches:
+
+- **Worker (sends).** `AWS_SMS_REGION` is the switch. Region, access key id,
+  secret access key, configuration set, TPS ceiling and cost per segment are
+  **all-or-none** (a partial set stops the worker); origination identity, message
+  type, alphanumeric flag, endpoint override and
+  **`AWS_SMS_TIME_TO_LIVE_SECONDS`** (new, 5–259200, `900` for OTP) are optional.
+- **Gateway (receives).** `AWS_SMS_EVENTS_TOPIC_ARN` is the switch and the **only**
+  AWS variable the gateway reads — it needs no credentials.
+- **Compose:** `deploy/docker-compose.yml` passes each variable through by bare
+  `NAME:` (forwarded when set, absent when not — `${NAME:-}` would hand clap an
+  empty string). `deploy/.env.example` carries the block **commented out, and says
+  in capitals to leave it that way rather than blank**. The stack has **no
+  `seed-dispatch` one-shot**; the compose file's comment gives the AWS command to
+  run by hand.
+- **Helm:** an `awsSms:` values block (`region`, `accessKeyId`, `configurationSet`,
+  `tpsCeiling`, `costPerSegmentXaf` — quoted strings — plus the optional
+  `originationIdentity`, `messageType`, `supportsAlphanumericSender`, `endpointUrl`,
+  `timeToLiveSeconds`, and `eventsTopicArn`) and `existingSecrets.awsSms` (key
+  `AWS_SMS_SECRET_ACCESS_KEY`). `templates/common.yaml` **strips every worker-side
+  `AWS_SMS_*` variable (the `secretKeyRef` included) when `awsSms.region` is empty**,
+  strips each optional one when its value is empty, and strips the gateway's when
+  `eventsTopicArn` is empty — never rendering them empty. `timeToLiveSeconds` joined
+  that list on 2026-10-21. With region set, a missing `accessKeyId`,
+  `configurationSet`, `tpsCeiling`, `costPerSegmentXaf` or secret name is a
+  `required` error at render time.
+- **Provider seeding in Helm is two hooks, not `bootstrap`:** `seedDispatch`
+  (Orange) is **switched off when `orange.clientId` is empty**, and
+  `seedDispatchAws` is switched on when `awsSms.region` or `awsSms.eventsTopicArn`
+  is set, its arguments assembled in `common.yaml`. An AWS-only values file leaves
+  `orange.clientId` and `mtn.clientId` empty. The chart refuses to render with no
+  provider at all (`orange.clientId`, `mtn.clientId`, `awsSms.region` or
+  `awsSms.eventsTopicArn`). If AWS runs beside another provider, both hooks add a
+  catch-all route at the same priority and weight, so traffic splits evenly until
+  the routes are edited.
+- **Keep `sms_provider_aws_sms` in any overridden gateway log filter.** It is in
+  the default `SMS_GATEWAY_LOG` / Helm `RUST_LOG`; without it the
+  subscription-confirmation command and two `error` lines never appear
+  (`vsms-aws-sms`, Traps).
+- **`AWS_SMS_SECRET_ACCESS_KEY` is a secret** in `cargo xtask secret-env-args`
+  (`vsms-tooling`); the worker's `--help` hides its value.
 
 ## Backup
 
