@@ -45,6 +45,14 @@ to go stale first, and therefore the ones to re-verify soonest:
 - **Pinned versions** — cratestack, the authkestra family, the MSRV.
 - **Multi-country stage 1's four explicit gaps** (#356–#359).
 
+## Unreleased — only an owner may hand out `owner`
+
+`vsms-api` (RBAC section) describes vaam-apps/vsms#434: a schema clause plus a
+write-path guard (`owner_grant.rs`) so an `admin` can no longer grant, remove or
+deactivate `owner`, and why an update policy alone cannot enforce a rule about
+the value being written. Claims `owner_grant.rs` and its sidecar. The skill's
+stamp is unchanged until #434 merges; the paragraph names the PR and its date.
+
 ## Unreleased — Keycloak single sign-on for the admin console
 
 Verified against vsms

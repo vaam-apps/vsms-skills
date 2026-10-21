@@ -152,6 +152,8 @@
         "backends/crates/sms-api",
         "backends/crates/sms-api/src/router.rs",
         "backends/crates/sms-api/src/rbac.rs",
+        "backends/crates/sms-api/src/owner_grant.rs",
+        "backends/crates/sms-api/src/owner_grant.md",
         "backends/apps/sms-gateway",
         "backends/apps/sms-gateway/src/commands",
         "backends/apps/sms-gateway/src/token_rate_limit.rs",
