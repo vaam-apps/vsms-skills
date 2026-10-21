@@ -5,7 +5,7 @@ description: "Finishing a change in vsms — which document a change belongs to,
 
 # vsms-docs-skills
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `32a6be37` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See

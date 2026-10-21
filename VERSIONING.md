@@ -47,9 +47,9 @@ has drifted.
 **A stamp may be newer than the baseline; it may never be older or unrelated.**
 Re-verifying one skill against a later vsms and stamping just that one is
 correct and expected — the gate checks only that the stamped commit _contains_
-the baseline. Requiring all twenty-one stamps to move together would make a
+the baseline. Requiring all twenty-two stamps to move together would make a
 one-skill correction cost a full re-verification pass, which is how you get
-twenty-one rubber-stamps.
+twenty-two rubber-stamps.
 
 The baseline also governs coverage. A claim on a **directory** covers the pages
 that existed when the claim was made; a page added under a claimed directory

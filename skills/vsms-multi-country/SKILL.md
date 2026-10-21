@@ -5,7 +5,7 @@ description: "Cameroon-first and extensible in vsms — what stage 1 of the mult
 
 # vsms-multi-country
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `32a6be37` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -60,6 +60,31 @@ computed now; CM output is byte-identical.
 And two things no code closes: the design doc names **sender-ID regimes,
 aggregator coverage, and data-residency conflicts** as unsolved. **Nobody should
 read "extensible" as "any market works today."**
+
+## AWS is the first broad-coverage rail (2026-10-21)
+
+`aws_sms` (`vsms-aws-sms`) is the first rail whose runbook routes Camtel, Nexttel,
+unknown **and foreign** numbers through it, instead of a Cameroon operator's own
+API; its coverage is AWS's per-country table, not something vsms can enumerate.
+That **narrows, but does not close,** the "aggregator coverage" gap the design doc
+names, and it leaves the rest of this page standing:
+
+- **Cost is still hand-converted to XAF.** AWS prices in USD per destination
+  country; `AWS_SMS_COST_PER_SEGMENT_XAF` is a single figure you convert and
+  maintain, never defaulted, and it feeds `estimatedCostXaf`. There is no currency
+  abstraction (#357).
+- **No operator comes from the receipt.** Events carry `mcc`/`mnc`; they are not
+  mapped onto `OperatorCode` (#358), so per-operator analysis gets nothing from
+  AWS and `operator` stays `unknown` for foreign traffic.
+- **Sender-ID regimes are still not solved.** AWS's own country table decides
+  whether a sender ID needs registration; Cameroon's row says it does not, but the
+  runbook records that nothing read says whether one must still be requested in the
+  account first.
+- **Data residency became concrete.** Sending a number and body to AWS is a
+  cross-border transfer of personal data; AWS has no Cameroon Region (the nearest,
+  `af-south-1`, is in South Africa, and is opt-in). Law No. 2024/017 requires prior
+  authorisation, and `OPEN_QUESTIONS.md` §1.5 records it as blocking go-live on
+  `aws_sms`. A Region choice only picks _which_ foreign Region receives the data.
 
 ## The honest limitation
 

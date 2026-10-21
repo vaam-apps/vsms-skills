@@ -114,6 +114,16 @@
         "backends/crates/sms-provider-mtn/src/token.md"
       ]
     },
+    "vsms-aws-sms": {
+      "covers": [
+        "backends/crates/sms-provider-aws-sms",
+        "backends/crates/sms-provider-aws-sms/src/lib.md",
+        "backends/crates/sms-provider-aws-sms/src/sns.md",
+        "backends/crates/sms-provider-aws-sms/src/events.md",
+        "backends/crates/sms-provider-aws-sms/src/sigv4.md",
+        "docs/runbooks/aws-sms.adoc"
+      ]
+    },
     "vsms-routing": {
       "covers": [
         "backends/crates/sms-routing",

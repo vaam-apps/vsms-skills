@@ -57,7 +57,7 @@ actually verified against.
 ## Adding coverage for a new vsms feature
 
 1. Read the feature — the code, and its `.md` sidecar.
-2. Fold it into the **owning** skill's prose. Resist adding a skill: twenty-one
+2. Fold it into the **owning** skill's prose. Resist adding a skill: twenty-two
    is already a lot to choose between, and a routing table that is too fine is a
    routing table nobody follows.
 3. Add the sidecar (or its crate/app root) **and** the source paths to that

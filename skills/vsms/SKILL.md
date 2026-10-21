@@ -5,7 +5,7 @@ description: "Orientation for working in the vsms repository — a Rust + TypeSc
 
 # vsms
 
-> **Verified against vsms `7dfad661` (2026-10-20).** Version-sensitive claims
+> **Verified against vsms `32a6be37` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -33,7 +33,9 @@ is `docs/architecture.md`'s relevant numbered section first, then the `.md`
 sidecar next to the module that implements it (`#![doc = include_str!(...)]`
 — `dispatch.md`, `claim.md`, `op.md`, and the rest under `backends/**/src/`: 75
 sidecars at `0dbde02a`, 78 as of 2026-10-19 — `sso.md` in `sms-auth` and in
-`sms-gateway`, and `lib.md` of `sms-fake-oidc`).
+`sms-gateway`, and `lib.md` of `sms-fake-oidc` — and **82 as of 2026-10-21**, the
+four being `sms-provider-aws-sms`'s `lib.md`, `sns.md`, `events.md` and `sigv4.md`;
+counted with `find backends -path '*/src/*' -name '*.md' | wc -l`).
 
 `OPEN_QUESTIONS.md` is what is still undecided, and §1.4 ("local password or an
 external identity provider for humans?") is **not** any more: settled
@@ -41,7 +43,9 @@ external identity provider for humans?") is **not** any more: settled
 realm and keeps local passwords as the break-glass path (`vsms-auth`). What it
 leaves open: whether a Keycloak group is an acceptable stand-in for "may see
 every app's message metadata" (#211), and whether vsms sessions should end when
-the Keycloak session does.
+the Keycloak session does. **§1.5 (opened 2026-10-21) blocks go-live on `aws_sms`:**
+whether sending recipient numbers and bodies to AWS is an authorised cross-border
+transfer under Law No. 2024/017 (`vsms-aws-sms`).
 
 ## The one thing to get right
 
@@ -127,7 +131,7 @@ summary what you did _not_ do.
 | `frontends/`                    | The pnpm workspace: `apps/admin` plus `packages/{gateway,api,env,hooks,sms-client}`                                                                                                                                                                           |
 | `sdks/`, `examples/`            | Published SDKs and runnable examples. **`examples/*` is outside the pnpm workspace on purpose**                                                                                                                                                               |
 | `.xtask/`                       | Every CI guard. No bash or Python survives in this repo                                                                                                                                                                                                       |
-| `backends/**/src/*.md`          | The real feature index — one sidecar per module, pulled in via `#![doc = include_str!(...)]`. 78 of them as of 2026-10-19 (75 at `0dbde02a`)                                                                                                                  |
+| `backends/**/src/*.md`          | The real feature index — one sidecar per module, pulled in via `#![doc = include_str!(...)]`. 82 of them as of 2026-10-21 (78 on 2026-10-19, 75 at `0dbde02a`)                                                                                                |
 | `docs/runbooks/`                | AsciiDoc. How to operate it, including the two manual milestone gates                                                                                                                                                                                         |
 
 ## Traps that have each cost this project real time
@@ -172,6 +176,7 @@ it used to say and was wrong about.
 | The `SmsProvider` port, the error taxonomy, adding a rail | `vsms-providers`       |
 | Orange Cameroon specifics, or the fake                    | `vsms-orange-cm`       |
 | MTN via an aggregator                                     | `vsms-mtn`             |
+| AWS End User Messaging SMS (`aws_sms`), SNS receipts      | `vsms-aws-sms`         |
 | Route selection, failover, circuit breakers, grey routes  | `vsms-routing`         |
 | The worker — roles, leases, claim loops, dispatch, jobs   | `vsms-worker`          |
 | Events, the outbox, webhook delivery and signing          | `vsms-webhooks`        |

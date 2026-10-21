@@ -5,7 +5,7 @@ description: "The vsms worker node — six roles and their cardinality, leader e
 
 # vsms-worker
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `32a6be37` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -96,6 +96,16 @@ a two-hop one does.
 Claim a batch (budget = the **sum** of every registered provider's TPS ceiling)
 → route on the `accepted` branch → resolve the adapter by `Provider.key` →
 submit → classify.
+
+**Up to three adapters are registered as of 2026-10-21** — `orange_cm`, `mtn_cm`
+and `aws_sms` — each enabled by its own all-or-none group of flags
+(`aws_sms`: region, both halves of the access key, configuration set, TPS
+ceiling, cost per segment; the registry builder fails on a partial group, and
+`--roles dispatch` with none at all). **AWS-only is the go-live shape**, so no
+Orange or MTN variable need exist. Because the tick budget is the sum of the
+registered adapters' TPS ceilings, adding a provider raises it. The _gateway_
+holds its own, separate set of adapters for parsing callbacks; it never sends.
+`vsms-aws-sms` has the configuration.
 
 Two retryable-not-fatal cases: the `Provider` row was deleted since routing ran,
 and **a route naming a provider this process has no credentials for** — a real

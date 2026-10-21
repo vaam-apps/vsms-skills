@@ -7,9 +7,10 @@ right-hand skill re-read, and usually edited.
 | -------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | `schemas/vsms.cstack`, `backends/migrations/**`, `ADDED_BY_LATER_TABLES`                                       | `vsms-data-layer`             |
 | `sms-encoding`, `sms-msisdn`, the send path, `dlr.rs`                                                          | `vsms-messaging`              |
-| `sms-provider`, `sms-provider-http`                                                                            | `vsms-providers`              |
+| `sms-provider` (including trait changes such as `authenticate_callback`), `sms-provider-http`                  | `vsms-providers`              |
 | `sms-provider-orange-cm`, `sms-fake-orange`                                                                    | `vsms-orange-cm`              |
 | `sms-provider-mtn`                                                                                             | `vsms-mtn`                    |
+| `sms-provider-aws-sms`, `docs/runbooks/aws-sms.adoc`                                                           | `vsms-aws-sms`                |
 | `sms-routing`, `worker/routing.rs`, `breaker.rs`, `grey_route_watch.rs`                                        | `vsms-routing`                |
 | `sms-worker` anywhere else                                                                                     | `vsms-worker`                 |
 | `sms-webhook`, `webhooks.rs`, `hooks.rs`, `drain.rs`, `reap_outbox.rs`                                         | `vsms-webhooks`               |

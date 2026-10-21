@@ -45,6 +45,79 @@ to go stale first, and therefore the ones to re-verify soonest:
 - **Pinned versions** — cratestack, the authkestra family, the MSRV.
 - **Multi-country stage 1's four explicit gaps** (#356–#359).
 
+## Unreleased — AWS End User Messaging SMS (`aws_sms`)
+
+Verified against vsms
+[`32a6be37`](https://github.com/vaam-apps/vsms/commit/32a6be37) (2026-10-21), plus
+the uncommitted final review fixes to `sms-provider-aws-sms` and the deploy files
+that were still being edited when these pages were written. **Re-stamp to the
+commit that lands them** (see `skills/vsms-docs-skills/references/skills-parity.md`
+on stamping a branch head versus the squash-merge commit).
+
+**New skill:** `vsms-aws-sms` — twenty-two skills now. It covers why this is End
+User Messaging and not SNS `Publish`, the worker-sends / gateway-receives split,
+hand-written SigV4, the error and event mappings (including the final
+`TEXT_SUCCESSFUL` → `Delivered` overstatement and the `isFinal` rule), how an
+Amazon SNS callback is authenticated, configuration, AWS-only provisioning,
+routing beside other rails, and what has never run live. The four new
+`sms-provider-aws-sms/src/*.md` sidecars and `docs/runbooks/aws-sms.adoc` are
+claimed by it, **each by its own path** — a directory claim on a crate that
+arrived after the baseline covers none of its sidecars.
+
+**Skills changed:** `vsms-providers` (the `authenticate_callback` hook),
+`vsms-messaging` (DLR section), `vsms-api`, `vsms-worker`, `vsms-tooling`,
+`vsms-ops`, `vsms-routing`, `vsms-multi-country`, `vsms-troubleshooting`, `vsms`
+and `vsms-docs-skills` (the routing table). Only the AWS-related parts of those
+were re-verified; the rest of each page was not re-read against `32a6be37`.
+
+**Claims that stopped being true** (each struck through and dated in the skill):
+
+- ~~The worker's provider registry has exactly **one** entry (`orange_cm`).~~ Up
+  to three — `orange_cm`, `mtn_cm`, `aws_sms` — each built from its own
+  all-or-none flag group (`vsms-providers`, `vsms-worker`).
+- ~~**No signature verification exists** for any provider.~~ `aws_sms`
+  authenticates every callback through the new `SmsProvider::authenticate_callback`
+  hook; `orange_cm` and `mtn_cm` still do not (`vsms-messaging`, `vsms-providers`).
+- ~~`secret-env-args` covers five secret variables.~~ Six: `AWS_SMS_SECRET_ACCESS_KEY`
+  is the sixth (`vsms-tooling`).
+- ~~A new secret-bearing flag needs a sentinel in
+  `help_never_prints_secret_env_values.rs`.~~ That test spawns only `sms-gateway`
+  and sets four sentinels, so the worker's `MTN_CLIENT_SECRET` and
+  `AWS_SMS_SECRET_ACCESS_KEY` — and the gateway's own `MTN_CLIENT_SECRET` — are
+  guarded by the **static** check alone. This was never true of them; the page
+  implied otherwise (`vsms-tooling`).
+- ~~78 documentation sidecars~~ 82 (`vsms`).
+- A late provider receipt no longer trips `SM001` for any provider: ingestion
+  proposes a transition only when it is a legal edge from the message's current
+  state, so a `delivered` arriving after `expired` is recorded and changes nothing
+  (`vsms-messaging`).
+- ~~An SNS `SubscriptionConfirmation` is confirmed automatically by the gateway.~~
+  It is never visited: the gateway logs the `aws sns confirm-subscription` command
+  and a human runs it with `--authenticate-on-unsubscribe true`. vsms's own
+  `AGENTS.md` section on this provider still said otherwise when this was written
+  (`vsms-aws-sms`).
+
+**Added, for the first time:** `sms-gateway bootstrap --skip-seed-dispatch` and the
+AWS-only provisioning recipe (`vsms-ops`, `vsms-aws-sms`); `AWS_SMS_TIME_TO_LIVE_SECONDS`
+(`vsms-aws-sms`, `vsms-ops`); the `403` / `503` / `200` response semantics of
+`POST /dlr/{providerKey}` (`vsms-api`, `vsms-messaging`).
+
+**Found while writing it, and fixed in vsms before merge:** the gateway's default
+log filter did not name `sms_provider_aws_sms`, so the subscription-confirmation
+command and the adapter's two `error` lines would have been silently dropped —
+the same trap `sms_auth` fell into on 2026-10-19. Probed against
+`tracing-subscriber` with the exact filter string; the target is now in all four
+default strings (binary, compose, `.env.example`, Helm).
+
+**Left alone, still stale from earlier work:** `vsms-mtn` still says MTN is "not
+wired up", that the registry has one entry, and describes the invented
+aggregator placeholder that the MADAPI rewrite replaced; `vsms-orange-cm` still
+describes `receiptRequest.callbackData` as load-bearing for DLR correlation,
+which the Orange DLR rewrite removed. Neither is touched by this change.
+
+**Not covered:** nothing has run against a live AWS account, and neither have
+these pages.
+
 ## Unreleased — Keycloak single sign-on for the admin console
 
 Verified against vsms

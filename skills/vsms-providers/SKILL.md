@@ -5,7 +5,7 @@ description: "The vsms provider port — the SmsProvider trait, the six-variant 
 
 # vsms-providers
 
-> **Verified against vsms `0dbde02a` (2026-09-15).** Version-sensitive claims
+> **Verified against vsms `32a6be37` (2026-10-21).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
@@ -83,14 +83,47 @@ even _express_ MTN's numbers.
    and `sms-provider-http`.
 2. Implement `submit` and `parse_dlr`. **Reuse
    `sms_provider_http::classify_transport_error`** — do not re-derive it.
-3. Register in `backends/apps/sms-worker/src/main.rs`'s registry, keyed by
-   `SmsProvider::key()`, which must equal `Provider.key` in the database.
-4. Seed a `Provider` row and a `Route`, or nothing will reach it.
-5. Prove the connect-versus-read guard by breaking it.
+3. **If the provider signs its callbacks, override
+   `SmsProvider::authenticate_callback`** (below). The default trusts every
+   caller.
+4. Register in `backends/apps/sms-worker/src/main.rs`'s registry, keyed by
+   `SmsProvider::key()`, which must equal `Provider.key` in the database — and in
+   the gateway's DLR map (`commands::serve::build_dlr_router`) if it sends
+   callbacks.
+5. Seed a `Provider` row and a `Route`, or nothing will reach it.
+6. Prove the connect-versus-read guard by breaking it.
 
-Note the registry has exactly **one** entry today (`orange_cm`). A `Route`
-pointing at a provider this process has no adapter for is a **retryable** error,
-not a crash — the correct and safe behaviour for a singleton dispatch.
+~~The registry has exactly **one** entry (`orange_cm`).~~ **Corrected
+2026-10-21:** the worker's registry has up to **three** — `orange_cm`, `mtn_cm`
+and `aws_sms` — each built only when its own all-or-none group of flags is
+complete. A `Route` pointing at a provider this process has no adapter for is
+still a **retryable** error, not a crash — the correct and safe behaviour for a
+singleton dispatch.
+
+## Authenticating a provider's callback
+
+`POST /dlr/{providerKey}` is public: a provider webhook carries no bearer token.
+`SmsProvider::authenticate_callback(&RawCallback)` (since 2026-10-21) is the hook
+the gateway calls **before** `parse_dlr`, and it returns
+`Result<CallbackDisposition, ProviderError>`:
+
+| Result                     | Gateway answers                    | Meaning                                                                 |
+| -------------------------- | ---------------------------------- | ----------------------------------------------------------------------- |
+| `Ok(Ingest)` (the default) | proceeds to `parse_dlr` and ingest | authentic, **or this provider documents no scheme to check**            |
+| `Ok(Acknowledged { .. })`  | `200`, nothing parsed              | an authentic handshake that carries no delivery update                  |
+| `Ok(Refused { .. })`       | `403`, nothing parsed or stored    | failed authentication; the reason is logged at `warn`, never returned   |
+| `Err(_)`                   | `503`                              | the check could not _run_ — not proof of forgery, so ask for redelivery |
+
+It is a separate, **async** hook because `parse_dlr` is synchronous and pure,
+and verifying an Amazon SNS delivery fetches a certificate. Keep that
+distinction: a transient failure to run the check must be an `Err`, never a
+`Refused`, because a provider that treats `403` as final (SNS does) would drop a
+genuine receipt for good.
+
+Only `aws_sms` overrides it. `orange_cm` and `mtn_cm` use the default, `Ingest`,
+because neither documents a signature scheme — the only controls on their routes
+are the path segment and, for Orange, an external HTTPS-443/whitelist
+constraint. `vsms-aws-sms` has the one worked example.
 
 ## The message-class caveat, stated once
 
