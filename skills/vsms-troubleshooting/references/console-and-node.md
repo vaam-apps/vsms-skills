@@ -26,6 +26,43 @@ Fixed upstream; three text columns in `senders.ts` still carry the
 empty-string-means-clear workaround, which is safe **only** because nothing
 queries or branches on their NULL-ness.
 
+## The console reloads, polls too often, or never polls
+
+Three symptoms vaam-apps/vsms#436 fixed on 2026-10-21, each invisible to `tsc`.
+On an older tree they are still there; on a newer one, these are the regressions
+to look for first. Detail in the `vsms-console` skill.
+
+- **Every navigation is a full page load** (DevTools' network tab shows a
+  `document` request per click, and every screen starts from a skeleton).
+  `SideNav` renders plain `<a href>`; `useClientLinks()`
+  (`frontends/apps/admin/app/use-client-links.ts`, decision in
+  `app/client-links.ts`) is what routes them client-side. If it regressed, check
+  that `ConsoleShell` (`app/console-shell.tsx`) still calls it, and that the link
+  is not excluded on purpose: a modifier or middle click, `target`, `download`,
+  another origin, an `/api/…` path, or a handler that already called
+  `preventDefault()`. The reverse symptom — **an anchor to a server route
+  (the "Sign in with Keycloak" button, a file a route handler serves) rendering the console's
+  404 instead of redirecting** — means that route is not under `/api/`, so the
+  handler pushed it to the App Router instead of making the real request.
+  Sign-out is a `<form method="post">` and never passes through the handler.
+- **The Messages screen sends about a dozen requests a second, or a dashboard,
+  jobs, workers or webhook-attempt list never refreshes.** A tuning number
+  arrived as a **string**. `SKIP_ENV_VALIDATION=1` (both demo compose files set
+  it) skips `createEnv`'s coercion, so `Date.now() + "2000"` concatenates and
+  TanStack ignores a string `refetchInterval` without a word. Tuning keys are
+  coerced anyway only if they are in `TUNING`
+  (`frontends/packages/env/src/tuning.ts`); a value declared with a bare
+  `z.coerce` straight in `index.ts` has the old bug. Check with
+  `typeof env.X` server-side, not by reading the schema.
+- **Every return to a screen refetches everything**: `QUERY_STALE_TIME_MS`
+  (default 10 s) is not reaching `TrpcProvider`'s `staleTimeMs`
+  (`frontends/apps/admin/app/layout.tsx` → `app/providers.tsx` →
+  `frontends/packages/hooks/src/provider.tsx`). TanStack's own default is 0.
+- **A not-found or forbidden page sits on its skeleton for ~7 s.** Something
+  overrode `retry` so a 4xx is retried with backoff again. The default is
+  `shouldRetryQuery` (`frontends/packages/hooks/src/retry.ts`): no retry for a
+  4xx on the tRPC error's `data.httpStatus`.
+
 ## R6 and what `cargo xtask r6` cannot see
 
 It scans `frontends/apps/admin/app` only. It **cannot** see a `className` in

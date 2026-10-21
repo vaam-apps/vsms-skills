@@ -140,9 +140,9 @@ that are easy to get wrong:
 - **Write the filters as positive lists.** `'**'` followed by `'!'` exclusions
   does _not_ subtract — paths-filter ORs its rules, so every job runs always and
   the configuration merely looks like it filters.
-- **`**/_.md`is compiled input here**, not prose: the`.md`doc sidecars are
-  pulled in by`include_str!`and have broken`clippy -D warnings`. Only
-  root-level `_.md`and`docs/\*\*` are safe to treat as prose.
+- `**/*.md` **is compiled input here**, not prose: the `.md` doc sidecars are
+  pulled in by `include_str!` and have broken `clippy -D warnings`. Only
+  root-level `*.md` and `docs/**` are safe to treat as prose.
 - **Gate with a per-job `if:`, never `on.pull_request.paths`.** A skipped job
   still _reports_; a workflow that never triggers reports nothing and leaves a
   required check pending forever.

@@ -209,7 +209,13 @@
         "docs/design/frontend-package-audit.md",
         "frontends/apps/admin/app/api/auth/sso/route.ts",
         "frontends/apps/admin/app/api/auth/callback/route.ts",
-        "frontends/apps/admin/app/login"
+        "frontends/apps/admin/app/login",
+        "frontends/apps/admin/app/client-links.ts",
+        "frontends/apps/admin/app/use-client-links.ts",
+        "frontends/apps/admin/app/console-shell.tsx",
+        "frontends/apps/admin/components",
+        "frontends/packages/env/src/tuning.ts",
+        "frontends/packages/hooks/src/retry.ts"
       ]
     },
     "vsms-compliance": {
