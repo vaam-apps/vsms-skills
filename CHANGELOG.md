@@ -48,11 +48,15 @@ to go stale first, and therefore the ones to re-verify soonest:
 ## Unreleased — AWS End User Messaging SMS (`aws_sms`)
 
 Verified against vsms
-[`32a6be37`](https://github.com/vaam-apps/vsms/commit/32a6be37) (2026-10-21), plus
-the uncommitted final review fixes to `sms-provider-aws-sms` and the deploy files
-that were still being edited when these pages were written. **Re-stamp to the
-commit that lands them** (see `skills/vsms-docs-skills/references/skills-parity.md`
-on stamping a branch head versus the squash-merge commit).
+[`f2662c7d`](https://github.com/vaam-apps/vsms/commit/f2662c7d) (2026-10-21), the
+squash-merge commit of vaam-apps/vsms#435.
+
+**Also folded in, because the gate checks the whole tree:** vaam-apps/vsms#434
+(only an owner may grant, remove or deactivate `owner`) merged to vsms `main`
+first and added `sms-api/src/owner_grant.md` with no skill covering it.
+`vsms-auth` gains a section on its two halves (the `User` policy, and the
+request-body guard on `POST /users` / `PATCH /users/{id}`) and claims
+`owner_grant.rs`, `owner_grant.md` and `role_escalation_live_postgres.rs`.
 
 **New skill:** `vsms-aws-sms` — twenty-two skills now. It covers why this is End
 User Messaging and not SNS `Publish`, the worker-sends / gateway-receives split,
@@ -68,7 +72,7 @@ arrived after the baseline covers none of its sidecars.
 `vsms-messaging` (DLR section), `vsms-api`, `vsms-worker`, `vsms-tooling`,
 `vsms-ops`, `vsms-routing`, `vsms-multi-country`, `vsms-troubleshooting`, `vsms`
 and `vsms-docs-skills` (the routing table). Only the AWS-related parts of those
-were re-verified; the rest of each page was not re-read against `32a6be37`.
+were re-verified; the rest of each page was not re-read against `f2662c7d`.
 
 **Claims that stopped being true** (each struck through and dated in the skill):
 

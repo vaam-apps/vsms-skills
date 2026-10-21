@@ -187,7 +187,10 @@
         "backends/crates/sms-fake-oidc/src/lib.md",
         "docs/runbooks/sso.adoc",
         "frontends/apps/admin/lib/sso.ts",
-        "frontends/apps/admin/lib/sso-discovery.ts"
+        "frontends/apps/admin/lib/sso-discovery.ts",
+        "backends/crates/sms-api/src/owner_grant.rs",
+        "backends/crates/sms-api/src/owner_grant.md",
+        "backends/crates/sms-api/tests/role_escalation_live_postgres.rs"
       ]
     },
     "vsms-console": {

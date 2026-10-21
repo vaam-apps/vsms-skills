@@ -154,6 +154,30 @@ Roles: `owner`, `admin`, `operator`, `developer`, `auditor`, `support`, and
 > literal that nothing checks is worse than none**, because it implies a control
 > that does not exist.
 
+### Only an owner hands out `owner` (2026-10-21)
+
+`User`'s `create`/`update` `@@allow` admits `admin`, and on 2026-10-20 an admin
+updated its **own** record to `roleKey = owner` in production (vaam-apps/vsms#434).
+Closed in two halves, because the policy engine can see only one of them:
+
+- **Schema half.** The admin disjunct is `hasRole('admin') && roleKey != 'owner'`.
+  A `create` policy is evaluated against the _input_, so an admin cannot create an
+  owner. An `update` policy compiles to `UPDATE … WHERE <policy>` on the _stored_
+  row, so an admin cannot edit, demote or deactivate an existing owner. It
+  **cannot see the new value**, so it cannot stop `admin -> owner` on its own.
+- **Request half.** `sms_api::owner_grant::enforce_owner_grant_guard`, a middleware
+  on `POST /users` and `PATCH /users/{id}`. For any caller whose role is not
+  `owner` it decodes the body with the router's own codec into the generated
+  `CreateUserInput`/`UpdateUserInput` and answers 403 when `roleKey` is `owner`.
+  It fails closed: an undecodable body is 400, an unsupported `Content-Type` 415,
+  an oversized one refused, never forwarded. An owner's request is not inspected.
+
+`provisionUser` writes through the delegate under the caller's context, so the
+schema half already refuses an admin provisioning an owner. **A new user-write
+route must be added to `GUARDED_ROUTES`**; `every_generated_user_write_route_is_guarded`
+fails the build until it is classified. Live suite:
+`backends/crates/sms-api/tests/role_escalation_live_postgres.rs`.
+
 ## The `system` principal
 
 Synthetic, constructed **only** inside a process, by exactly one function:
