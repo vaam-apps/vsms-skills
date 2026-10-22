@@ -5,8 +5,7 @@ description: "AWS End User Messaging SMS in vsms (provider key aws_sms), the go-
 
 # vsms-aws-sms
 
-> **Verified against vsms `f2662c7d` (2026-10-21); `sms-fake-aws` against the
-> PR that adds it (2026-10-21).** Version-sensitive claims
+> **Verified against vsms `69afaf0b` (2026-10-22).** Version-sensitive claims
 > below carry the date they became true — a feature on vsms's `main` may be
 > absent from the tree you are editing. On an older or newer vsms, trust the
 > repository over this page. See
