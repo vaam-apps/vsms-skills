@@ -45,6 +45,15 @@ to go stale first, and therefore the ones to re-verify soonest:
 - **Pinned versions** — cratestack, the authkestra family, the MSRV.
 - **Multi-country stage 1's four explicit gaps** (#356–#359).
 
+## Unreleased — `sms-fake-aws`: the AWS provider end to end without an account
+
+`vsms-aws-sms` gains "Without an account: `sms-fake-aws`": the fake of
+`SendTextMessage` and the SNS receipt topic, why its signature checks are a
+second implementation, the `RedirectSnsHttp` seam, and why `sms-gateway`
+trusts the fake only behind its off-by-default `fake-aws` cargo feature. Claims
+`backends/crates/sms-fake-aws`, `backends/apps/sms-fake-aws`, their sidecars and
+the new live suite. Stamped to the vsms PR that adds them until it merges.
+
 ## Unreleased — only an owner may hand out `owner`
 
 `vsms-api` (RBAC section) describes vaam-apps/vsms#434: a schema clause plus a
@@ -52,6 +61,7 @@ write-path guard (`owner_grant.rs`) so an `admin` can no longer grant, remove or
 deactivate `owner`, and why an update policy alone cannot enforce a rule about
 the value being written. Claims `owner_grant.rs` and its sidecar. The skill's
 stamp is unchanged until #434 merges; the paragraph names the PR and its date.
+
 ## Unreleased — the console on `@vaam-apps/ui` 0.5.0, client-side links and coerced tuning
 
 Verified against vsms

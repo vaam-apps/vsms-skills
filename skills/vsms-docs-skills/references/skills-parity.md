@@ -10,7 +10,7 @@ right-hand skill re-read, and usually edited.
 | `sms-provider` (including trait changes such as `authenticate_callback`), `sms-provider-http`                                    | `vsms-providers`              |
 | `sms-provider-orange-cm`, `sms-fake-orange`                                                                                      | `vsms-orange-cm`              |
 | `sms-provider-mtn`                                                                                                               | `vsms-mtn`                    |
-| `sms-provider-aws-sms`, `docs/runbooks/aws-sms.adoc`                                                                             | `vsms-aws-sms`                |
+| `sms-provider-aws-sms`, `sms-fake-aws`, `docs/runbooks/aws-sms.adoc`                                                             | `vsms-aws-sms`                |
 | `sms-routing`, `worker/routing.rs`, `breaker.rs`, `grey_route_watch.rs`                                                          | `vsms-routing`                |
 | `sms-worker` anywhere else                                                                                                       | `vsms-worker`                 |
 | `sms-webhook`, `webhooks.rs`, `hooks.rs`, `drain.rs`, `reap_outbox.rs`                                                           | `vsms-webhooks`               |

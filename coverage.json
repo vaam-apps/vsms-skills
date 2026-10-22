@@ -121,6 +121,15 @@
         "backends/crates/sms-provider-aws-sms/src/sns.md",
         "backends/crates/sms-provider-aws-sms/src/events.md",
         "backends/crates/sms-provider-aws-sms/src/sigv4.md",
+        "backends/crates/sms-fake-aws",
+        "backends/crates/sms-fake-aws/src/lib.md",
+        "backends/crates/sms-fake-aws/src/policy.md",
+        "backends/crates/sms-fake-aws/src/ledger.md",
+        "backends/crates/sms-fake-aws/src/sigv4.md",
+        "backends/crates/sms-fake-aws/src/signing.md",
+        "backends/apps/sms-fake-aws",
+        "backends/apps/sms-fake-aws/src/main.md",
+        "backends/crates/sms-worker/tests/aws_sms_fake_live_postgres.rs",
         "docs/runbooks/aws-sms.adoc"
       ]
     },
